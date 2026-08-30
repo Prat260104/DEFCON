@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "BeforeTool": [
+      {
+        "matcher": "bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat >> ~/.apl/inbox.jsonl"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat >> ~/.apl/inbox.jsonl"
+          }
+        ]
+      }
+    ]
+  }
+}

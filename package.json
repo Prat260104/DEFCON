@@ -1,0 +1,59 @@
+{
+  "name": "agent-permission-layer",
+  "version": "0.1.0",
+  "description": "Detects when your coding agent is blocked, tells you instantly, and shows you how risky the pending command is before you approve it.",
+  "type": "module",
+  "main": "dist/cli/index.js",
+  "bin": {
+    "apl": "dist/cli/index.js",
+    "apl-mcp": "dist/mcp/index.js",
+    "apl-hook": "dist/hooks/antigravity.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli/index.ts",
+    "demo": "tsx src/demo.ts",
+    "test:mcp": "tsx scripts/test-mcp.ts",
+    "mcp": "tsx src/mcp/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/ test/",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\""
+  },
+  "keywords": [
+    "ai-agent",
+    "coding-agent",
+    "permission",
+    "risk-classification",
+    "claude-code",
+    "gemini-cli",
+    "developer-tools",
+    "notification"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "better-sqlite3": "^13.0.3",
+    "chokidar": "^4.0.0",
+    "commander": "^13.0.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

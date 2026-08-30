@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "agent-permission-layer": {
+      "command": "node",
+      "args": ["/absolute/path/to/Agents-Permission/dist/mcp/index.js"],
+      "disabled": false,
+      "autoApprove": []
+    }
+  },
+  "configurations": {
+    "antigravity_ide": {
+      "description": "Add the server entry above to your Antigravity IDE mcp_config.json file."
+    },
+    "cursor": {
+      "description": "Add the server entry above to ~/.cursor/mcp.json or Settings -> Features -> MCP."
+    },
+    "claude_desktop": {
+      "description": "Add the server entry above to ~/Library/Application Support/Claude/claude_desktop_config.json (macOS) or %APPDATA%\\Claude\\claude_desktop_config.json (Windows)."
+    },
+    "kiro_ide": {
+      "description": "Add to your Kiro MCP configuration settings."
+    }
+  }
+}

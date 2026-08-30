@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build Outputs
+dist/
+build/
+out/
+*.js.map
+*.d.ts.map
+*.tsbuildinfo
+
+# APL Runtime Data & User Storage (NEVER COMMIT)
+.apl/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+inbox.jsonl
+
+# Logs & Diagnostics
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test Coverage & Tooling Caches
+coverage/
+.vitest/
+.nyc_output/
+.turbo/
+.cache/
+
+# IDE, Editor & Agent Workspace Configs (Local to machine)
+.vscode/
+.idea/
+.agents/
+.cursor/
+.gemini/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Claude Local Configs (keep .example files)
+.claude/*
+!.claude/settings.json.example
+
+# OS & System Metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+
+# Secrets, Credentials & Local Environment Files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+id_rsa*
+*.local
+credentials.json
+token.json
