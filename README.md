@@ -34,27 +34,38 @@ There is an architectural distinction between **Terminal CLI agents** and **Chat
 
 ## Quickstart & Usage
 
-### 1. Start the Live Daemon
+### 1. Zero-Config Setup (Recommended)
+Auto-detects installed coding agents (Claude Code, Gemini CLI, Cursor, Antigravity, Claude Desktop) and configures them automatically without manual JSON editing:
+
 ```bash
-npm run dev -- start
+# Preview what will be configured
+defcon setup --dry-run
+
+# Configure all detected tools
+defcon setup
+
+# Start the monitoring daemon
+defcon start
 ```
-*or if installed globally via `npm link`:*
-```bash
-apl start
-```
+*(Both `defcon` and `apl` CLI aliases are supported).*
 
 ### 2. Available CLI Commands
 ```bash
-apl start              # Start the APL monitoring daemon
-apl status             # View current status of all adapters
-apl agents             # List supported agent adapters
-apl config             # View or modify configuration
-apl history            # View recent agent activity audit log
-apl mcp                # Start the Model Context Protocol (MCP) server
-npm run demo           # Run an interactive stall & permission simulation
+defcon setup            # Auto-configure hooks and MCP servers for detected agents
+defcon setup --dry-run  # Preview changes without modifying files
+defcon setup --undo     # Cleanly revert APL configurations from your tools
+defcon start            # Start the APL monitoring daemon
+defcon status           # View current status of all adapters
+defcon agents           # List supported agent adapters
+defcon config           # View or modify configuration
+defcon history          # View recent agent activity audit log
+defcon mcp              # Start the Model Context Protocol (MCP) server
+npm run demo            # Run an interactive stall & permission simulation
 ```
 
-## Agent Configuration
+## Manual Configuration (Optional)
+
+If you prefer manual configuration instead of `defcon setup`:
 
 ### Claude Code Setup
 Add to `~/.claude/settings.json`:

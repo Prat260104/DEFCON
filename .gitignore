@@ -41,6 +41,8 @@ coverage/
 .agents/
 .cursor/
 .gemini/
+.kiro/
+*.bak
 *.swp
 *.swo
 *.sublime-workspace

@@ -4,6 +4,7 @@ import { StallAlertTimer } from "../../core/stallTimer.js";
 import { ClaudeCodeAdapter } from "../../adapters/claudeCode.js";
 import { GeminiCliAdapter } from "../../adapters/geminiCli.js";
 import { AntigravityAdapter } from "../../adapters/antigravityTranscript.js";
+import { KiroAdapter } from "../../adapters/kiro.js";
 import { SqliteEventStore } from "../../storage/sqliteStore.js";
 import { notify } from "../../notify/index.js";
 import { loadConfig, getDefaultInboxPath } from "../configManager.js";
@@ -90,6 +91,14 @@ export function createStartCommand(): Command {
         await antigravityAdapter.start();
         adapters.push(antigravityAdapter);
         console.log("  ✅ Watching Antigravity events...");
+      }
+
+      if (config.adapters["kiro"] !== false) {
+        const kiroAdapter = new KiroAdapter(inboxPath);
+        kiroAdapter.onEvent((event) => eventBus.emit(event));
+        await kiroAdapter.start();
+        adapters.push(kiroAdapter);
+        console.log("  ✅ Watching Kiro IDE events...");
       }
 
       // Graceful shutdown handling

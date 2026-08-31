@@ -6,6 +6,7 @@
   "main": "dist/cli/index.js",
   "bin": {
     "apl": "dist/cli/index.js",
+    "defcon": "dist/cli/index.js",
     "apl-mcp": "dist/mcp/index.js",
     "apl-hook": "dist/hooks/antigravity.js"
   },
@@ -37,6 +38,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "apl": "^0.1.15",
     "better-sqlite3": "^13.0.3",
     "chokidar": "^4.0.0",
     "commander": "^13.0.0",

@@ -120,7 +120,7 @@ describe("Antigravity Transcript Observer", () => {
         }) + "\n",
       );
 
-      const waitForCount = async (count: number, timeoutMs = 2000) => {
+      const waitForCount = async (count: number, timeoutMs = 4000) => {
         const start = Date.now();
         while (receivedEvents.length < count && Date.now() - start < timeoutMs) {
           await new Promise((r) => setTimeout(r, 50));

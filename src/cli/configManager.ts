@@ -43,6 +43,7 @@ export function getDefaultConfig(): AplConfig {
       "claude-code": true,
       "gemini-cli": true,
       "antigravity": true,
+      "kiro": true,
     },
     notifications: {
       enabled: true,
