@@ -93,7 +93,8 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
   ├── 11A: Minimal Native Tray UI (Tauri v2 / Rust + Webview, ~8MB)
   ├── 11B: Local Loopback WebSocket Transport (ws://127.0.0.1:48123)
   ├── 11C: Real-time Event Feed, Status Badges & Policy Toggle Controls
-  └── 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation (Snooze Alert System)
+  ├── 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation (Snooze Alert System)
+  └── 11E: Custom Audio Asset Uploader & Sound Profile Manager (MP3/WAV/AIFF upload + preview)
                            │
                            ▼
 [ Phase 12: Project-Aware Context Engine (Planned — Not Started) ]
@@ -329,6 +330,18 @@ The Tray App is a **pure presentation client** sitting on top of the existing AP
     - Alert 2 (+60s): High-urgency alert (`Sosumi`).
     - Alert 3 (+120s): Maximum-urgency acoustic tone (`Basso` / double pulse).
   - **Instant Cancellation Invariant:** The entire recurring timer chain is immediately and silently cancelled the millisecond the developer clicks Allow/Deny or the agent's turn resolves.
+
+### 5. 11E — Custom Audio Asset Uploader & Sound Profile Manager
+- **The Goal:** Allow developers to replace default system sounds (`Sosumi`, `Ping`, `Pop`) with any custom audio track of their choice (e.g. funny sounds, loud siren, team chimes, MP3/WAV/AIFF clips).
+- **Architecture & Capabilities:**
+  - **CLI Sound Management:**
+    - `defcon config --set notifications.customSoundPath=/path/to/alert.mp3`
+    - `defcon sound import <file.wav>` $\to$ automatically sanitizes and persists audio to `~/.apl/sounds/`
+    - `defcon sound test` $\to$ plays a 1-second preview of the currently configured alert audio.
+  - **Tray UI Drag-and-Drop Uploader:**
+    - Visual sound picker in the Desktop Menu Bar UI allowing drag-and-drop upload of `.mp3`, `.wav`, `.aiff`, `.ogg` files.
+    - Tier-specific mapping: Configure distinct custom audio tracks for **LOW**, **MEDIUM**, **HIGH**, and **STALL** events independently.
+    - In-app playback preview button to test volume and clarity before applying.
 
 ---
 
