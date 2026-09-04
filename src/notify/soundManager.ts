@@ -203,16 +203,20 @@ export function removeSoundAsset(
 
 /**
  * Resolve the appropriate sound file path and sound name for an event according to priority:
- * - If stall alert with acoustic escalation:
- *     - Alert 1 (escalationLevel 1): Tier-specific sound (Pop/Ping/Sosumi or configured tier custom sound)
- *     - Alert 2 (escalationLevel 2): Sosumi (higher urgency alert)
- *     - Alert 3+ (escalationLevel 3+): Basso or custom stall sound (customSounds.stall)
- * - If non-stall event or legacy stall:
- *     1. Stall-specific custom sound (customSounds.stall)
- *     2. Tier-specific custom sound (customSounds[riskLevel])
- *     3. Global custom sound (customSoundPath)
- *     4. Tier-configured built-in sound (sounds[riskLevel])
- *     5. System risk-level default (Pop/Ping/Sosumi)
+ *
+ * For stall alerts:
+ * 1. Optional per-level custom sound (e.g. customSounds["stall-level-2"])
+ * 2. Universal custom stall sound (customSounds.stall) — plays consistently at EVERY escalation level (1, 2, 3+) by default
+ * 3. Fall back to built-in escalating acoustic sequence (only when NO custom stall sound is configured):
+ *    - Alert 3+ (escalationLevel >= 3): Basso (maximum urgency)
+ *    - Alert 2 (escalationLevel == 2): Sosumi (high urgency)
+ *    - Alert 1 (escalationLevel == 1): Tier-specific sound (tier custom -> global custom -> Pop/Ping/Sosumi)
+ *
+ * For non-stall events:
+ * 1. Tier-specific custom sound (customSounds[riskLevel])
+ * 2. Global custom sound (customSoundPath)
+ * 3. Tier-configured built-in sound (sounds[riskLevel])
+ * 4. System risk-level default (Pop/Ping/Sosumi)
  */
 export function resolveSoundForEvent(
   event: AgentEvent,
@@ -225,27 +229,44 @@ export function resolveSoundForEvent(
   const customSounds = config.notifications?.customSounds;
   const globalCustom = config.notifications?.customSoundPath;
 
-  // Escalation-aware acoustic dispatch for stall alerts
-  if (isStall && escalationLevel !== undefined) {
-    // Alert 3+: Maximum-urgency acoustic tone (Basso or custom stall sound if configured)
-    if (escalationLevel >= 3) {
-      if (customSounds?.stall && existsSync(customSounds.stall)) {
+  if (isStall) {
+    // 1. Optional per-level custom sound override (e.g. stall-level-2, stall-level-3)
+    if (escalationLevel !== undefined) {
+      const levelKey = `stall-level-${escalationLevel}` as SoundTier;
+      const levelCustomSound = customSounds?.[levelKey];
+      if (typeof levelCustomSound === "string" && existsSync(levelCustomSound)) {
         return {
-          soundName: basename(customSounds.stall, extname(customSounds.stall)),
-          soundFilePath: customSounds.stall,
+          soundName: basename(levelCustomSound, extname(levelCustomSound)),
+          soundFilePath: levelCustomSound,
         };
       }
-      const soundFilePath = existsSync("/System/Library/Sounds/Basso.aiff") ? "/System/Library/Sounds/Basso.aiff" : null;
-      return { soundName: "Basso", soundFilePath };
     }
 
-    // Alert 2: High-urgency alert (Sosumi)
-    if (escalationLevel === 2) {
-      const soundFilePath = existsSync("/System/Library/Sounds/Sosumi.aiff") ? "/System/Library/Sounds/Sosumi.aiff" : null;
-      return { soundName: "Sosumi", soundFilePath };
+    // 2. Custom stall sound configured via sound manager:
+    // Plays at EVERY escalation level (1, 2, and 3+) by default — consistency is expected
+    if (customSounds?.stall && existsSync(customSounds.stall)) {
+      return {
+        soundName: basename(customSounds.stall, extname(customSounds.stall)),
+        soundFilePath: customSounds.stall,
+      };
     }
 
-    // Alert 1: Standard notification sound (Ping/Pop or configured tier sound)
+    // 3. Fall back to built-in escalating sound sequence only when NO custom stall sound is set:
+    if (escalationLevel !== undefined) {
+      // Alert 3+: Maximum-urgency acoustic tone (Basso)
+      if (escalationLevel >= 3) {
+        const soundFilePath = existsSync("/System/Library/Sounds/Basso.aiff") ? "/System/Library/Sounds/Basso.aiff" : null;
+        return { soundName: "Basso", soundFilePath };
+      }
+
+      // Alert 2: High-urgency alert (Sosumi)
+      if (escalationLevel === 2) {
+        const soundFilePath = existsSync("/System/Library/Sounds/Sosumi.aiff") ? "/System/Library/Sounds/Sosumi.aiff" : null;
+        return { soundName: "Sosumi", soundFilePath };
+      }
+    }
+
+    // Alert 1 (or unescalated stall): Standard tier sound (tier custom -> global custom -> built-in tier default)
     if (customSounds?.[risk] && existsSync(customSounds[risk]!)) {
       return {
         soundName: basename(customSounds[risk]!, extname(customSounds[risk]!)),
@@ -263,16 +284,8 @@ export function resolveSoundForEvent(
     return { soundName, soundFilePath };
   }
 
-  // Non-escalated stall or generic event:
-  // 1. Stall-specific custom sound
-  if (isStall && customSounds?.stall && existsSync(customSounds.stall)) {
-    return {
-      soundName: basename(customSounds.stall, extname(customSounds.stall)),
-      soundFilePath: customSounds.stall,
-    };
-  }
-
-  // 2. Tier-specific custom sound
+  // Non-stall normal event:
+  // 1. Tier-specific custom sound
   if (customSounds?.[risk] && existsSync(customSounds[risk]!)) {
     return {
       soundName: basename(customSounds[risk]!, extname(customSounds[risk]!)),
@@ -280,7 +293,7 @@ export function resolveSoundForEvent(
     };
   }
 
-  // 3. Global custom sound
+  // 2. Global custom sound
   if (globalCustom && existsSync(globalCustom)) {
     return {
       soundName: basename(globalCustom, extname(globalCustom)),
@@ -288,12 +301,8 @@ export function resolveSoundForEvent(
     };
   }
 
-  // 4. Built-in sounds
+  // 3. Built-in sounds
   let soundName = config.notifications?.sounds?.[risk] || DEFAULT_RISK_SOUND_MAP[risk] || "Sosumi";
-  if (isStall && !config.notifications?.sounds?.[risk]) {
-    soundName = "Sosumi"; // Stall alert default urgency
-  }
-
   let soundFilePath: string | null = `/System/Library/Sounds/${soundName}.aiff`;
   if (!existsSync(soundFilePath)) {
     soundFilePath = null;

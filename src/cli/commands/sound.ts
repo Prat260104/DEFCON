@@ -8,6 +8,7 @@ import {
   getDefaultSoundsDir,
   type SoundTier,
 } from "../configManager.js";
+import type { RiskLevel } from "../../core/types.js";
 import {
   importSoundFile,
   listSoundAssets,
@@ -159,7 +160,7 @@ export function createSoundCommand(): Command {
 
       if (matchedBuiltIn) {
         if (tier !== "stall") {
-          config.notifications.sounds[tier] = matchedBuiltIn;
+          config.notifications.sounds[tier as RiskLevel] = matchedBuiltIn;
         }
         if (config.notifications.customSounds && config.notifications.customSounds[tier]) {
           delete config.notifications.customSounds[tier];
@@ -205,7 +206,7 @@ export function createSoundCommand(): Command {
         } else if (tier === "stall") {
           targetSound = "Sosumi";
         } else {
-          targetSound = config.notifications.sounds[tier] || DEFAULT_RISK_SOUND_MAP[tier];
+          targetSound = config.notifications.sounds[tier as RiskLevel] || DEFAULT_RISK_SOUND_MAP[tier as RiskLevel];
         }
       } else if (config.notifications.customSoundPath) {
         targetSound = config.notifications.customSoundPath;
@@ -239,7 +240,7 @@ export function createSoundCommand(): Command {
           delete config.notifications.customSounds[tier];
         }
         if (tier !== "stall") {
-          config.notifications.sounds[tier] = DEFAULT_RISK_SOUND_MAP[tier];
+          config.notifications.sounds[tier as RiskLevel] = DEFAULT_RISK_SOUND_MAP[tier as RiskLevel];
         }
         saveConfig(config, configPath);
         console.log(`✅ Reset sound profile for ${tier.toUpperCase()} tier to default.`);

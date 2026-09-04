@@ -166,35 +166,84 @@ describe("soundManager", () => {
     });
 
     describe("Multi-Tier Acoustic Escalation (Phase 11D)", () => {
-      it("Alert 1 (Level 1) uses standard tier sound (Pop/Ping/Sosumi or tier custom sound)", () => {
-        const config = getDefaultConfig();
+      it("custom stall sound plays consistently across ALL escalation levels (1, 2, and 3+)", () => {
+        const customStallAudio = join(tempDir, "siren.mp3");
+        writeFileSync(customStallAudio, "audio");
 
-        // Low risk -> Pop
-        const lowResolved = resolveSoundForEvent({
+        const config: AplConfig = {
+          ...getDefaultConfig(),
+          notifications: {
+            ...getDefaultConfig().notifications,
+            customSounds: {
+              stall: customStallAudio,
+            },
+          },
+        };
+
+        // Alert 1 (Level 1)
+        const lvl1 = resolveSoundForEvent({
           ...baseEvent,
           riskLevel: "low",
           metadata: { isStallAlert: true, escalationLevel: 1 },
         }, config);
-        expect(lowResolved.soundName).toBe("Pop");
+        expect(lvl1.soundName).toBe("siren");
+        expect(lvl1.soundFilePath).toBe(customStallAudio);
 
-        // Medium risk -> Ping
-        const medResolved = resolveSoundForEvent({
+        // Alert 2 (Level 2)
+        const lvl2 = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "medium",
+          metadata: { isStallAlert: true, escalationLevel: 2 },
+        }, config);
+        expect(lvl2.soundName).toBe("siren");
+        expect(lvl2.soundFilePath).toBe(customStallAudio);
+
+        // Alert 3 (Level 3)
+        const lvl3 = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "high",
+          metadata: { isStallAlert: true, escalationLevel: 3 },
+        }, config);
+        expect(lvl3.soundName).toBe("siren");
+        expect(lvl3.soundFilePath).toBe(customStallAudio);
+      });
+
+      it("falls back to built-in escalating sequence (Pop/Ping -> Sosumi -> Basso) when NO custom stall sound is set", () => {
+        const config = getDefaultConfig();
+
+        // Alert 1 (Level 1) - Low risk -> Pop, Medium risk -> Ping, High risk -> Sosumi
+        const lvl1Low = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "low",
+          metadata: { isStallAlert: true, escalationLevel: 1 },
+        }, config);
+        expect(lvl1Low.soundName).toBe("Pop");
+
+        const lvl1Med = resolveSoundForEvent({
           ...baseEvent,
           riskLevel: "medium",
           metadata: { isStallAlert: true, escalationLevel: 1 },
         }, config);
-        expect(medResolved.soundName).toBe("Ping");
+        expect(lvl1Med.soundName).toBe("Ping");
 
-        // High risk -> Sosumi
-        const highResolved = resolveSoundForEvent({
+        // Alert 2 (Level 2) - Escalates to Sosumi
+        const lvl2 = resolveSoundForEvent({
           ...baseEvent,
-          riskLevel: "high",
-          metadata: { isStallAlert: true, escalationLevel: 1 },
+          riskLevel: "low",
+          metadata: { isStallAlert: true, escalationLevel: 2 },
         }, config);
-        expect(highResolved.soundName).toBe("Sosumi");
+        expect(lvl2.soundName).toBe("Sosumi");
+
+        // Alert 3 (Level 3) - Escalates to Basso
+        const lvl3 = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "low",
+          metadata: { isStallAlert: true, escalationLevel: 3 },
+        }, config);
+        expect(lvl3.soundName).toBe("Basso");
       });
 
-      it("Alert 1 (Level 1) prioritizes tier-specific custom sound if configured", () => {
+      it("Alert 1 prioritizes risk-tier custom sound when no custom stall sound is set", () => {
         const customLowAudio = join(tempDir, "custom-low.wav");
         writeFileSync(customLowAudio, "audio");
 
@@ -217,47 +266,40 @@ describe("soundManager", () => {
         expect(resolved.soundFilePath).toBe(customLowAudio);
       });
 
-      it("Alert 2 (Level 2) uses Sosumi (high-urgency escalation)", () => {
-        const config = getDefaultConfig();
-        const resolved = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "low", // Even for low-risk, Alert 2 escalates to Sosumi
-          metadata: { isStallAlert: true, escalationLevel: 2 },
-        }, config);
-        expect(resolved.soundName).toBe("Sosumi");
-      });
-
-      it("Alert 3 (Level 3) uses Basso when no custom stall sound is configured", () => {
-        const config = getDefaultConfig();
-        const resolved = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "medium",
-          metadata: { isStallAlert: true, escalationLevel: 3 },
-        }, config);
-        expect(resolved.soundName).toBe("Basso");
-      });
-
-      it("Alert 3 (Level 3) uses custom stall sound if configured via sound manager", () => {
-        const customStallAudio = join(tempDir, "siren.mp3");
-        writeFileSync(customStallAudio, "audio");
+      it("allows optional per-level custom override (e.g. stall-level-2)", () => {
+        const defaultStallAudio = join(tempDir, "stall-default.mp3");
+        const level2Audio = join(tempDir, "stall-lvl2.mp3");
+        writeFileSync(defaultStallAudio, "audio");
+        writeFileSync(level2Audio, "audio");
 
         const config: AplConfig = {
           ...getDefaultConfig(),
           notifications: {
             ...getDefaultConfig().notifications,
             customSounds: {
-              stall: customStallAudio,
+              stall: defaultStallAudio,
+              "stall-level-2": level2Audio,
             },
           },
         };
 
-        const resolved = resolveSoundForEvent({
+        const lvl1 = resolveSoundForEvent({
           ...baseEvent,
-          riskLevel: "high",
+          metadata: { isStallAlert: true, escalationLevel: 1 },
+        }, config);
+        expect(lvl1.soundName).toBe("stall-default");
+
+        const lvl2 = resolveSoundForEvent({
+          ...baseEvent,
+          metadata: { isStallAlert: true, escalationLevel: 2 },
+        }, config);
+        expect(lvl2.soundName).toBe("stall-lvl2");
+
+        const lvl3 = resolveSoundForEvent({
+          ...baseEvent,
           metadata: { isStallAlert: true, escalationLevel: 3 },
         }, config);
-        expect(resolved.soundName).toBe("siren");
-        expect(resolved.soundFilePath).toBe(customStallAudio);
+        expect(lvl3.soundName).toBe("stall-default");
       });
     });
   });

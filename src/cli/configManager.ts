@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import type { RiskLevel } from "../core/types.js";
 import { DEFAULT_POLICY_CONFIG, type PolicyConfig } from "../risk/policy.js";
 
-export type SoundTier = RiskLevel | "stall";
+export type SoundTier = RiskLevel | "stall" | "stall-level-1" | "stall-level-2" | "stall-level-3";
 
 export interface AplConfig {
   version: string;
@@ -114,7 +114,7 @@ export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
   const rawNotifications = (raw["notifications"] as Record<string, unknown>) || {};
   const rawCustomSounds = (rawNotifications["customSounds"] as Record<string, unknown>) || {};
   const customSounds: Partial<Record<SoundTier, string>> = {};
-  for (const tier of ["low", "medium", "high", "stall"] as const) {
+  for (const tier of ["low", "medium", "high", "stall", "stall-level-1", "stall-level-2", "stall-level-3"] as const) {
     if (typeof rawCustomSounds[tier] === "string" && rawCustomSounds[tier]) {
       customSounds[tier] = rawCustomSounds[tier] as string;
     }
