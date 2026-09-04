@@ -50,9 +50,27 @@ export function createConfigCommand(): Command {
         } else if (key.startsWith("notifications.sounds.")) {
           const tier = key.replace("notifications.sounds.", "") as "low" | "medium" | "high";
           config.notifications.sounds[tier] = val;
-        } else if (key === "stallAlertSeconds") {
+        } else if (key === "stallAlertSeconds" || key === "stall.stallAlertSeconds") {
           const num = parseInt(val, 10);
-          if (!isNaN(num) && num > 0) config.stallAlertSeconds = num;
+          if (!isNaN(num) && num > 0) {
+            config.stallAlertSeconds = num;
+            if (!config.stall) config.stall = {};
+            config.stall.stallAlertSeconds = num;
+          }
+        } else if (key === "repeatAlertIntervalSeconds" || key === "stall.repeatAlertIntervalSeconds") {
+          const num = parseInt(val, 10);
+          if (!isNaN(num) && num > 0) {
+            config.repeatAlertIntervalSeconds = num;
+            if (!config.stall) config.stall = {};
+            config.stall.repeatAlertIntervalSeconds = num;
+          }
+        } else if (key === "maxRepeatAlerts" || key === "stall.maxRepeatAlerts") {
+          const num = parseInt(val, 10);
+          if (!isNaN(num) && num >= 0) {
+            config.maxRepeatAlerts = num;
+            if (!config.stall) config.stall = {};
+            config.stall.maxRepeatAlerts = num;
+          }
         } else if (key === "whitelistSafetyTimeoutSeconds") {
           const num = parseInt(val, 10);
           if (!isNaN(num) && num > 0) config.whitelistSafetyTimeoutSeconds = num;
@@ -78,6 +96,12 @@ export function createConfigCommand(): Command {
           console.log(config.notifications.sounds[tier] ?? "");
         } else if (key === "notifications.customSoundPath") {
           console.log(config.notifications.customSoundPath ?? "");
+        } else if (key === "stall.repeatAlertIntervalSeconds" || key === "repeatAlertIntervalSeconds") {
+          console.log(config.repeatAlertIntervalSeconds);
+        } else if (key === "stall.maxRepeatAlerts" || key === "maxRepeatAlerts") {
+          console.log(config.maxRepeatAlerts);
+        } else if (key === "stall.stallAlertSeconds" || key === "stallAlertSeconds") {
+          console.log(config.stallAlertSeconds);
         } else {
           const val = (config as unknown as Record<string, unknown>)[key];
           console.log(typeof val === "object" ? JSON.stringify(val, null, 2) : val);

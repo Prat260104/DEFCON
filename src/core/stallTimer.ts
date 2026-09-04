@@ -6,8 +6,12 @@ export interface StallTimerOptions {
   stallAlertSeconds?: number;
   /** Safety-net seconds to wait before firing alert for whitelisted commands that fail to resolve. Default: 75 seconds. */
   whitelistSafetyTimeoutSeconds?: number;
+  /** Recurring reminder interval in seconds if unacknowledged. Default: 60 seconds. */
+  repeatAlertIntervalSeconds?: number;
+  /** Maximum number of recurring repeat alerts to fire after the initial alert. Default: 3. */
+  maxRepeatAlerts?: number;
   /** Custom callback when stall alert fires. */
-  onStallAlert?: (event: AgentEvent, elapsedMs: number) => void | Promise<void>;
+  onStallAlert?: (event: AgentEvent, elapsedMs: number, escalationLevel?: number) => void | Promise<void>;
 }
 
 /**
@@ -17,23 +21,33 @@ export interface StallTimerOptions {
  *
  * If the developer approves/denies (or the auto-run command finishes) before the timer
  * expires, the timer is cancelled silently with zero notification noise.
+ *
+ * Multi-tier acoustic escalation:
+ * Alert 1 (initial @ 35s): Tier sound (Pop/Ping/Sosumi or configured tier custom sound)
+ * Alert 2 (+60s @ 95s): Sosumi (high urgency)
+ * Alert 3 (+120s @ 215s): Basso or custom stall sound (maximum urgency)
  */
 interface ActiveTimerEntry {
-  timer: NodeJS.Timeout;
+  timer: NodeJS.Timeout | null;
   event: AgentEvent;
   startedAt: number;
   hasFired: boolean;
+  repeatCount: number;
 }
 
 export class StallAlertTimer {
   private defaultTimeoutMs: number;
   private whitelistSafetyTimeoutMs: number;
-  private onStallAlert?: (event: AgentEvent, elapsedMs: number) => void | Promise<void>;
+  private repeatAlertIntervalMs: number;
+  private maxRepeatAlerts: number;
+  private onStallAlert?: (event: AgentEvent, elapsedMs: number, escalationLevel?: number) => void | Promise<void>;
   private activeTimers = new Map<string, ActiveTimerEntry>();
 
   constructor(options: StallTimerOptions = {}) {
     this.defaultTimeoutMs = Math.max(1, (options.stallAlertSeconds ?? 35)) * 1000;
     this.whitelistSafetyTimeoutMs = Math.max(1, (options.whitelistSafetyTimeoutSeconds ?? 75)) * 1000;
+    this.repeatAlertIntervalMs = Math.max(1, (options.repeatAlertIntervalSeconds ?? 60)) * 1000;
+    this.maxRepeatAlerts = Math.max(0, (options.maxRepeatAlerts ?? 3));
     this.onStallAlert = options.onStallAlert;
   }
 
@@ -52,7 +66,7 @@ export class StallAlertTimer {
     if (event.type === "permission_required") {
       this.startCountdown(key, event);
     } else {
-      // Developer responded or command completed for this session — cancel silently
+      // Developer responded or command completed for this session — cancel silently and immediately
       this.cancel(key);
     }
   }
@@ -73,6 +87,7 @@ export class StallAlertTimer {
       event,
       startedAt,
       hasFired: false,
+      repeatCount: 0,
     });
   }
 
@@ -84,47 +99,75 @@ export class StallAlertTimer {
     const elapsedMs = Date.now() - entry.startedAt;
     const isWhitelisted = Boolean(entry.event.metadata?.["isWhitelisted"]);
     const stallSeconds = Math.round(elapsedMs / 1000);
+    const repeatCount = entry.repeatCount;
+    const escalationLevel = Math.min(3, repeatCount + 1);
+
+    entry.event.metadata = {
+      ...entry.event.metadata,
+      isStallAlert: true,
+      isWhitelistDrift: isWhitelisted,
+      stallSeconds,
+      escalationLevel,
+      repeatCount,
+    };
 
     const stallEvent: AgentEvent = {
       ...entry.event,
-      metadata: {
-        ...entry.event.metadata,
-        isStallAlert: true,
-        isWhitelistDrift: isWhitelisted,
-        stallSeconds,
-      },
+      metadata: entry.event.metadata,
     };
 
-    // Invoke callback/hook immediately
+    // Invoke callback/hook immediately (2 args for compatibility)
     if (this.onStallAlert) {
       try {
-        await this.onStallAlert(entry.event, elapsedMs);
+        const result = this.onStallAlert(entry.event, elapsedMs);
+        if (result && typeof (result as Promise<void>).catch === "function") {
+          (result as Promise<void>).catch((err) => {
+            console.error("[stallTimer] onStallAlert hook error:", err);
+          });
+        }
       } catch (err) {
         console.error("[stallTimer] onStallAlert hook error:", err);
       }
     }
 
-    // Fire the real OS notification & audio alarm
-    try {
-      await notify(stallEvent);
-    } catch (err) {
-      console.error("[stallTimer] Failed to dispatch OS notification:", err);
+    // Schedule next escalation reminder if repeat count is below maxRepeatAlerts
+    if (entry.repeatCount < this.maxRepeatAlerts) {
+      entry.repeatCount += 1;
+      // Interval backoff: repeat 1 uses 1 * interval (60s), repeat 2 uses 2 * interval (120s), etc.
+      const nextDelayMs = entry.repeatCount * this.repeatAlertIntervalMs;
+      entry.timer = setTimeout(() => {
+        this.fireAlert(key);
+      }, nextDelayMs);
+    } else {
+      entry.timer = null;
     }
+
+    // Fire the real OS notification & audio alarm asynchronously (non-blocking)
+    notify(stallEvent).catch((err) => {
+      console.error("[stallTimer] Failed to dispatch OS notification:", err);
+    });
   }
 
   /**
    * Cancel pending stall timer for a specific session, or all sessions if no key provided.
+   * Clears any active setTimeout immediately to ensure no lingering callbacks can fire.
    */
   cancel(key?: string): void {
     if (key) {
       const entry = this.activeTimers.get(key);
       if (entry) {
-        clearTimeout(entry.timer);
+        if (entry.timer) {
+          clearTimeout(entry.timer);
+          entry.timer = null;
+        }
         this.activeTimers.delete(key);
       }
     } else {
       for (const entry of this.activeTimers.values()) {
-        clearTimeout(entry.timer);
+        if (entry.timer) {
+          clearTimeout(entry.timer);
+          entry.timer = null;
+        }
       }
       this.activeTimers.clear();
     }

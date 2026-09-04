@@ -31,14 +31,17 @@ export function createStartCommand(): Command {
       const stallTimer = new StallAlertTimer({
         stallAlertSeconds: config.stallAlertSeconds ?? 35,
         whitelistSafetyTimeoutSeconds: config.whitelistSafetyTimeoutSeconds ?? 75,
-        onStallAlert: async (event, elapsedMs) => {
+        repeatAlertIntervalSeconds: config.repeatAlertIntervalSeconds ?? 60,
+        maxRepeatAlerts: config.maxRepeatAlerts ?? 3,
+        onStallAlert: async (event, elapsedMs, escalationLevel = 1) => {
           const stallSec = Math.round(elapsedMs / 1000);
           const isDrift = Boolean(event.metadata?.["isWhitelisted"]);
+          const escSuffix = escalationLevel > 1 ? ` (Escalation ${escalationLevel})` : "";
 
           if (isDrift) {
-            console.log(`\n  ⚠️ [WHITELIST DRIFT ALERT] Agent waiting ${stallSec}s on whitelisted command (${event.command})! Your whitelist or IDE auto-approve settings may have changed.`);
+            console.log(`\n  ⚠️ [WHITELIST DRIFT ALERT${escSuffix}] Agent waiting ${stallSec}s on whitelisted command (${event.command})! Your whitelist or IDE auto-approve settings may have changed.`);
           } else {
-            console.log(`\n  🔊 [STALL ALERT] Agent has been blocked for ${stallSec}s! Firing alarm...`);
+            console.log(`\n  🔊 [STALL ALERT${escSuffix}] Agent has been blocked for ${stallSec}s! Firing alarm...`);
           }
         },
       });

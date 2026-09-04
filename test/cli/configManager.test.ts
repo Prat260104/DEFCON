@@ -79,4 +79,53 @@ describe("Config Validation & Sanitization", () => {
     });
     expect(notifyConfig.policies.low).toBe("notify-only");
   });
+
+  describe("Recurring Stall Reminders & Snooze Escalation Config", () => {
+    it("provides default values for repeatAlertIntervalSeconds (60s) and maxRepeatAlerts (3)", () => {
+      const sanitized = sanitizeConfig({});
+      expect(sanitized.repeatAlertIntervalSeconds).toBe(60);
+      expect(sanitized.maxRepeatAlerts).toBe(3);
+      expect(sanitized.stall?.repeatAlertIntervalSeconds).toBe(60);
+      expect(sanitized.stall?.maxRepeatAlerts).toBe(3);
+    });
+
+    it("falls back to default (60s) for invalid or negative repeatAlertIntervalSeconds", () => {
+      expect(sanitizeConfig({ repeatAlertIntervalSeconds: "invalid" }).repeatAlertIntervalSeconds).toBe(60);
+      expect(sanitizeConfig({ repeatAlertIntervalSeconds: -15 }).repeatAlertIntervalSeconds).toBe(60);
+      expect(sanitizeConfig({ repeatAlertIntervalSeconds: 0 }).repeatAlertIntervalSeconds).toBe(60);
+    });
+
+    it("falls back to default (3) for invalid or negative maxRepeatAlerts", () => {
+      expect(sanitizeConfig({ maxRepeatAlerts: "invalid" }).maxRepeatAlerts).toBe(3);
+      expect(sanitizeConfig({ maxRepeatAlerts: -5 }).maxRepeatAlerts).toBe(3);
+    });
+
+    it("accepts 0 for maxRepeatAlerts to disable recurring reminders", () => {
+      const sanitized = sanitizeConfig({ maxRepeatAlerts: 0 });
+      expect(sanitized.maxRepeatAlerts).toBe(0);
+      expect(sanitized.stall?.maxRepeatAlerts).toBe(0);
+    });
+
+    it("accepts valid positive numbers for repeatAlertIntervalSeconds and maxRepeatAlerts", () => {
+      const sanitized = sanitizeConfig({
+        repeatAlertIntervalSeconds: 45,
+        maxRepeatAlerts: 5,
+      });
+      expect(sanitized.repeatAlertIntervalSeconds).toBe(45);
+      expect(sanitized.maxRepeatAlerts).toBe(5);
+    });
+
+    it("supports nested stall configuration object in raw config", () => {
+      const sanitized = sanitizeConfig({
+        stall: {
+          stallAlertSeconds: 40,
+          repeatAlertIntervalSeconds: 90,
+          maxRepeatAlerts: 2,
+        },
+      });
+      expect(sanitized.stallAlertSeconds).toBe(40);
+      expect(sanitized.repeatAlertIntervalSeconds).toBe(90);
+      expect(sanitized.maxRepeatAlerts).toBe(2);
+    });
+  });
 });

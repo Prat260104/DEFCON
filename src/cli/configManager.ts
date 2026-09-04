@@ -10,6 +10,13 @@ export interface AplConfig {
   version: string;
   stallAlertSeconds: number;
   whitelistSafetyTimeoutSeconds: number;
+  repeatAlertIntervalSeconds: number;
+  maxRepeatAlerts: number;
+  stall?: {
+    stallAlertSeconds?: number;
+    repeatAlertIntervalSeconds?: number;
+    maxRepeatAlerts?: number;
+  };
   adapters: {
     "claude-code": boolean;
     "gemini-cli": boolean;
@@ -46,6 +53,13 @@ export function getDefaultConfig(): AplConfig {
     version: "0.2.0",
     stallAlertSeconds: 35,
     whitelistSafetyTimeoutSeconds: 75,
+    repeatAlertIntervalSeconds: 60,
+    maxRepeatAlerts: 3,
+    stall: {
+      stallAlertSeconds: 35,
+      repeatAlertIntervalSeconds: 60,
+      maxRepeatAlerts: 3,
+    },
     adapters: {
       "claude-code": true,
       "gemini-cli": true,
@@ -70,9 +84,10 @@ export function getDefaultConfig(): AplConfig {
 
 export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
   const defaults = getDefaultConfig();
+  const rawStall = (raw["stall"] as Record<string, unknown>) || {};
 
   // Validate and clamp numeric stall timers (must be integer >= 1)
-  const parsedStallSeconds = Number(raw["stallAlertSeconds"]);
+  const parsedStallSeconds = Number(raw["stallAlertSeconds"] ?? rawStall["stallAlertSeconds"]);
   const stallAlertSeconds =
     !isNaN(parsedStallSeconds) && parsedStallSeconds > 0
       ? Math.floor(parsedStallSeconds)
@@ -83,6 +98,18 @@ export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
     !isNaN(parsedWhitelistTimeout) && parsedWhitelistTimeout > 0
       ? Math.floor(parsedWhitelistTimeout)
       : defaults.whitelistSafetyTimeoutSeconds;
+
+  const parsedRepeatInterval = Number(raw["repeatAlertIntervalSeconds"] ?? rawStall["repeatAlertIntervalSeconds"]);
+  const repeatAlertIntervalSeconds =
+    !isNaN(parsedRepeatInterval) && parsedRepeatInterval > 0
+      ? Math.floor(parsedRepeatInterval)
+      : defaults.repeatAlertIntervalSeconds;
+
+  const parsedMaxRepeat = Number(raw["maxRepeatAlerts"] ?? rawStall["maxRepeatAlerts"]);
+  const maxRepeatAlerts =
+    !isNaN(parsedMaxRepeat) && parsedMaxRepeat >= 0
+      ? Math.floor(parsedMaxRepeat)
+      : defaults.maxRepeatAlerts;
 
   const rawNotifications = (raw["notifications"] as Record<string, unknown>) || {};
   const rawCustomSounds = (rawNotifications["customSounds"] as Record<string, unknown>) || {};
@@ -145,6 +172,13 @@ export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
     version: typeof raw["version"] === "string" ? raw["version"] : defaults.version,
     stallAlertSeconds,
     whitelistSafetyTimeoutSeconds,
+    repeatAlertIntervalSeconds,
+    maxRepeatAlerts,
+    stall: {
+      stallAlertSeconds,
+      repeatAlertIntervalSeconds,
+      maxRepeatAlerts,
+    },
     adapters,
     notifications,
     policies,

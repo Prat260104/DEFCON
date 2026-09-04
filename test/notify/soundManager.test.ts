@@ -164,5 +164,101 @@ describe("soundManager", () => {
       const resolved = resolveSoundForEvent({ ...baseEvent, riskLevel: "low" }, config);
       expect(resolved.soundName).toBe(DEFAULT_RISK_SOUND_MAP.low);
     });
+
+    describe("Multi-Tier Acoustic Escalation (Phase 11D)", () => {
+      it("Alert 1 (Level 1) uses standard tier sound (Pop/Ping/Sosumi or tier custom sound)", () => {
+        const config = getDefaultConfig();
+
+        // Low risk -> Pop
+        const lowResolved = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "low",
+          metadata: { isStallAlert: true, escalationLevel: 1 },
+        }, config);
+        expect(lowResolved.soundName).toBe("Pop");
+
+        // Medium risk -> Ping
+        const medResolved = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "medium",
+          metadata: { isStallAlert: true, escalationLevel: 1 },
+        }, config);
+        expect(medResolved.soundName).toBe("Ping");
+
+        // High risk -> Sosumi
+        const highResolved = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "high",
+          metadata: { isStallAlert: true, escalationLevel: 1 },
+        }, config);
+        expect(highResolved.soundName).toBe("Sosumi");
+      });
+
+      it("Alert 1 (Level 1) prioritizes tier-specific custom sound if configured", () => {
+        const customLowAudio = join(tempDir, "custom-low.wav");
+        writeFileSync(customLowAudio, "audio");
+
+        const config: AplConfig = {
+          ...getDefaultConfig(),
+          notifications: {
+            ...getDefaultConfig().notifications,
+            customSounds: {
+              low: customLowAudio,
+            },
+          },
+        };
+
+        const resolved = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "low",
+          metadata: { isStallAlert: true, escalationLevel: 1 },
+        }, config);
+        expect(resolved.soundName).toBe("custom-low");
+        expect(resolved.soundFilePath).toBe(customLowAudio);
+      });
+
+      it("Alert 2 (Level 2) uses Sosumi (high-urgency escalation)", () => {
+        const config = getDefaultConfig();
+        const resolved = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "low", // Even for low-risk, Alert 2 escalates to Sosumi
+          metadata: { isStallAlert: true, escalationLevel: 2 },
+        }, config);
+        expect(resolved.soundName).toBe("Sosumi");
+      });
+
+      it("Alert 3 (Level 3) uses Basso when no custom stall sound is configured", () => {
+        const config = getDefaultConfig();
+        const resolved = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "medium",
+          metadata: { isStallAlert: true, escalationLevel: 3 },
+        }, config);
+        expect(resolved.soundName).toBe("Basso");
+      });
+
+      it("Alert 3 (Level 3) uses custom stall sound if configured via sound manager", () => {
+        const customStallAudio = join(tempDir, "siren.mp3");
+        writeFileSync(customStallAudio, "audio");
+
+        const config: AplConfig = {
+          ...getDefaultConfig(),
+          notifications: {
+            ...getDefaultConfig().notifications,
+            customSounds: {
+              stall: customStallAudio,
+            },
+          },
+        };
+
+        const resolved = resolveSoundForEvent({
+          ...baseEvent,
+          riskLevel: "high",
+          metadata: { isStallAlert: true, escalationLevel: 3 },
+        }, config);
+        expect(resolved.soundName).toBe("siren");
+        expect(resolved.soundFilePath).toBe(customStallAudio);
+      });
+    });
   });
 });

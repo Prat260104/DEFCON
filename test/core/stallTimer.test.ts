@@ -238,4 +238,146 @@ describe("StallAlertTimer", () => {
     expect(timer.checkPending("session-A")).toBe(false);
     expect(timer.activeSessionCount).toBe(0);
   });
+
+  describe("Phase 11D Multi-Tier Acoustic Escalation & Snooze Loop", () => {
+    it("progresses through escalation schedule at offsets 35s, 95s, 215s with increasing escalation levels", () => {
+      const calls: { elapsedMs: number; escalationLevel?: number; repeatCount?: number }[] = [];
+      const onStallAlert = vi.fn((event: AgentEvent, elapsedMs: number) => {
+        calls.push({
+          elapsedMs,
+          escalationLevel: event.metadata?.["escalationLevel"] as number,
+          repeatCount: event.metadata?.["repeatCount"] as number,
+        });
+      });
+
+      const timer = new StallAlertTimer({
+        stallAlertSeconds: 35,
+        repeatAlertIntervalSeconds: 60,
+        maxRepeatAlerts: 3,
+        onStallAlert,
+      });
+
+      const event: AgentEvent = {
+        agent: "claude-code",
+        sessionId: "session-escalate",
+        type: "permission_required",
+        command: "rm -rf node_modules",
+        riskLevel: "medium",
+        timestamp: 0,
+      };
+
+      timer.handleEvent(event);
+
+      // t = 0 to 34s: no alert
+      vi.advanceTimersByTime(34000);
+      expect(onStallAlert).not.toHaveBeenCalled();
+
+      // Alert 1: fires at t = 35s (initial alert, Level 1)
+      vi.advanceTimersByTime(1000);
+      expect(onStallAlert).toHaveBeenCalledTimes(1);
+      expect(calls[0].escalationLevel).toBe(1);
+      expect(calls[0].repeatCount).toBe(0);
+
+      // t = 35s to 94s: no new alert
+      vi.advanceTimersByTime(59000);
+      expect(onStallAlert).toHaveBeenCalledTimes(1);
+
+      // Alert 2: fires at t = 95s (+60s from Alert 1, Level 2)
+      vi.advanceTimersByTime(1000);
+      expect(onStallAlert).toHaveBeenCalledTimes(2);
+      expect(calls[1].escalationLevel).toBe(2);
+      expect(calls[1].repeatCount).toBe(1);
+
+      // t = 95s to 214s: no new alert (+120s interval backoff)
+      vi.advanceTimersByTime(119000);
+      expect(onStallAlert).toHaveBeenCalledTimes(2);
+
+      // Alert 3: fires at t = 215s (+120s from Alert 2, Level 3)
+      vi.advanceTimersByTime(1000);
+      expect(onStallAlert).toHaveBeenCalledTimes(3);
+      expect(calls[2].escalationLevel).toBe(3);
+      expect(calls[2].repeatCount).toBe(2);
+
+      // Alert 4: fires at t = 395s (+180s from Alert 3, Level 3, repeatCount = 3 = maxRepeatAlerts)
+      vi.advanceTimersByTime(180000);
+      expect(onStallAlert).toHaveBeenCalledTimes(4);
+      expect(calls[3].escalationLevel).toBe(3);
+      expect(calls[3].repeatCount).toBe(3);
+
+      // Beyond maxRepeatAlerts: no further alerts fire even after a long wait
+      vi.advanceTimersByTime(600000);
+      expect(onStallAlert).toHaveBeenCalledTimes(4);
+    });
+
+    it("instant cancellation invariant: cancels mid-chain on completed event with zero lingering callbacks", () => {
+      const onStallAlert = vi.fn();
+      const timer = new StallAlertTimer({
+        stallAlertSeconds: 35,
+        repeatAlertIntervalSeconds: 60,
+        maxRepeatAlerts: 3,
+        onStallAlert,
+      });
+
+      const event: AgentEvent = {
+        agent: "claude-code",
+        sessionId: "session-cancel-test",
+        type: "permission_required",
+        command: "drop database production",
+        riskLevel: "high",
+        timestamp: 0,
+      };
+
+      timer.handleEvent(event);
+
+      // Advance to 35s -> Alert 1 fires
+      vi.advanceTimersByTime(35000);
+      expect(onStallAlert).toHaveBeenCalledTimes(1);
+
+      // Pending escalation timer is now scheduled for t = 95s (+60s)
+      expect(timer.isPending).toBe(true);
+
+      // At t = 60s (25s into the 60s snooze window), the user responds / completes
+      vi.advanceTimersByTime(25000); // now t = 60s
+      timer.handleEvent({
+        agent: "claude-code",
+        sessionId: "session-cancel-test",
+        type: "completed",
+        command: "drop database production",
+        timestamp: 60000,
+      });
+
+      // Assert timer is immediately no longer pending
+      expect(timer.isPending).toBe(false);
+      expect(timer.checkPending("session-cancel-test")).toBe(false);
+
+      // Advance past t = 95s, 215s, 500s: assert NO further alerts fire
+      vi.advanceTimersByTime(600000);
+      expect(onStallAlert).toHaveBeenCalledTimes(1); // Still exactly 1 from Alert 1
+    });
+
+    it("respects maxRepeatAlerts = 0 (only initial alert, zero escalation repeats)", () => {
+      const onStallAlert = vi.fn();
+      const timer = new StallAlertTimer({
+        stallAlertSeconds: 35,
+        repeatAlertIntervalSeconds: 60,
+        maxRepeatAlerts: 0,
+        onStallAlert,
+      });
+
+      timer.handleEvent({
+        agent: "claude-code",
+        type: "permission_required",
+        command: "test",
+        timestamp: 0,
+      });
+
+      // Fires initial alert at 35s
+      vi.advanceTimersByTime(35000);
+      expect(onStallAlert).toHaveBeenCalledTimes(1);
+
+      // Advance through multiple intervals — no repeats must fire
+      vi.advanceTimersByTime(300000);
+      expect(onStallAlert).toHaveBeenCalledTimes(1);
+    });
+  });
 });
