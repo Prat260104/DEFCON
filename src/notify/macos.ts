@@ -1,23 +1,18 @@
 import { execFile } from "node:child_process";
 import { existsSync } from "node:fs";
 import type { AgentEvent, RiskLevel } from "../core/types.js";
-import { loadConfig } from "../cli/configManager.js";
+import { loadConfig, type AplConfig } from "../cli/configManager.js";
+import { resolveSoundForEvent } from "./soundManager.js";
 
 /**
  * macOS native notification implementation using AppleScript (`osascript`) & `afplay`.
  *
- * Sound priority:
- * 1. Custom user audio file (mp3/wav/aiff) if configured and exists on disk
- * 2. High-risk urgent override (Sosumi)
- * 3. User configured builtInSound (e.g. Sosumi, Ping, Pop)
- * 4. Risk-level default mapping
+ * Sound priority handled in soundManager:
+ * 1. Stall-specific custom sound
+ * 2. Tier-specific custom sound
+ * 3. Global custom sound
+ * 4. Configured tier sound / system fallback
  */
-
-const RISK_SOUND_MAP: Record<RiskLevel, string> = {
-  low: "Pop",
-  medium: "Ping",
-  high: "Sosumi",
-};
 
 const RISK_BADGE: Record<RiskLevel, string> = {
   low: "🟢 [LOW RISK]",
@@ -35,7 +30,10 @@ function escapeAppleScript(str: string): string {
 /**
  * Format notification title, subtitle, body, and resolve sound path.
  */
-export function formatNotification(event: AgentEvent): {
+export function formatNotification(
+  event: AgentEvent,
+  configOverride?: AplConfig
+): {
   title: string;
   subtitle: string;
   body: string;
@@ -45,7 +43,7 @@ export function formatNotification(event: AgentEvent): {
 } {
   const risk = event.riskLevel ?? "medium";
   const badge = RISK_BADGE[risk];
-  const config = loadConfig();
+  const config = configOverride ?? loadConfig();
 
   const isStall = Boolean(event.metadata?.["isStallAlert"]);
   const isDrift = Boolean(event.metadata?.["isWhitelistDrift"]);
@@ -74,19 +72,8 @@ export function formatNotification(event: AgentEvent): {
     }
   }
 
-  // Resolve sound
-  let soundFilePath: string | null = null;
-  let soundName = RISK_SOUND_MAP[risk] || "Sosumi";
-
-  if (config.notifications?.customSoundPath && existsSync(config.notifications.customSoundPath)) {
-    soundFilePath = config.notifications.customSoundPath;
-    soundName = config.notifications.builtInSound || "Sosumi";
-  } else if (risk === "high") {
-    soundName = "Sosumi";
-    soundFilePath = `/System/Library/Sounds/Sosumi.aiff`;
-  } else {
-    soundFilePath = `/System/Library/Sounds/${soundName}.aiff`;
-  }
+  // Resolve sound using prioritized soundManager
+  const { soundName, soundFilePath } = resolveSoundForEvent(event, config);
 
   return { title, subtitle, body, sound: soundName, soundName, soundFilePath };
 }
@@ -95,9 +82,12 @@ export function formatNotification(event: AgentEvent): {
  * Send macOS desktop notification.
  * Resolves safely; errors are caught and logged without throwing.
  */
-export async function sendMacNotification(event: AgentEvent): Promise<boolean> {
+export async function sendMacNotification(
+  event: AgentEvent,
+  configOverride?: AplConfig
+): Promise<boolean> {
   return new Promise((resolve) => {
-    const { title, subtitle, body, soundName, soundFilePath } = formatNotification(event);
+    const { title, subtitle, body, soundName, soundFilePath } = formatNotification(event, configOverride);
 
     // Play native system sound or custom audio file directly via afplay
     if (soundFilePath && existsSync(soundFilePath)) {

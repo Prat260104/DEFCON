@@ -47,10 +47,11 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
 | **Claude Code Adapter** | CLI | ✅ **Built** | 🔒 **Verified** | Real hook integration tested with live stall countdown (`PreToolUse` + `Notification` correlation). |
 | **Gemini CLI Adapter** | CLI | ✅ **Built** | 🔒 **Verified** | Shell hook relay integration and test suite passing (`test/adapters/geminiCli.test.ts`). |
 | **Antigravity Transcript Observer** | IDE Chat GUI | ✅ **Built** | 🔒 **Verified** | Human end-to-end verified in live chat: detects pending dialogs and fires 35s audio/visual alarm. |
-| **Zero-Config Wizard (`defcon setup`)** | CLI Setup | ✅ **Built** | 🔒 **Verified (Config/Relay)** | Config merging, preservation of third-party keys, dry-run, idempotency, and rollback verified via automated & subshell file-relay tests (inbox write → adapter parse → classify); human native-app end-to-end test pending. |
+| **Kiro IDE Adapter (Dual-Mode)** | IDE Chat GUI | ✅ **Built** | 🔒 **Verified** | Real-time session watcher (`~/.kiro/sessions/**/messages.jsonl`) for live GUI chat `pending_interaction` + `.kiro/hooks` fallback. |
+| **Custom Sound Asset Manager (11E)** | CLI / Audio Engine | ✅ **Built** | 🔒 **Verified** | Universal asset store (`~/.apl/sounds/`), multi-tier sound assignment (`low`, `medium`, `high`, `stall`), `defcon sound` CLI suite, and cross-platform native playback. |
+| **Zero-Config Wizard (`defcon setup`)** | CLI Setup | ✅ **Built** | 🔒 **Verified (Config/Relay)** | Config merging, preservation of third-party keys, dry-run, idempotency, and rollback verified via automated & subshell file-relay tests. |
 | **APL MCP Server (`apl-mcp`)** | IDE / Protocol | ✅ **Built** | 🧪 **Tested (Subprocess)** | Live client verification (`scripts/test-mcp.ts`) proves tool listing, pre-flight checks, and active blocking. |
 | **Cursor / Claude Desktop (MCP)** | IDE Chat GUI | ✅ **Built** | ⚠️ **Untested on App** | Implements standard MCP JSON-RPC protocol; pending direct verification inside Desktop GUI apps. |
-| **Kiro IDE Adapter** | IDE Chat GUI | ⏳ **Not Built** | ⚪ **Not Started** | Planned for future phase via Kiro extension/MCP APIs. |
 | **Antigravity `.agents/hooks.json`** | IDE Chat GUI | ❌ **Non-Viable** | 🚫 **Confirmed Inactive** | Empirical test confirmed Antigravity Chat GUI mode does not execute `.agents/hooks.json`. |
 
 ---
@@ -81,20 +82,20 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
   └── Guaranteed vs. Cooperative detection status reporting
                            │
                            ▼
-[ Phase 10: Additional IDE & Editor Extensions (Planned — Not Started) ]
+[ Phase 10: Additional IDE & Editor Extensions ] 🔄 IN PROGRESS
   ├── 10A: VS Code Extension (GitHub Copilot / Cline / Continue tool execution status badge)
   ├── 10B: OpenAI Codex CLI Adapter (src/adapters/codex.ts experimental path)
   ├── 10C: JetBrains / WebStorm Plugin (AI Assistant tool execution hooks)
   ├── 10D: Windsurf IDE (Codeium) MCP Integration
-  └── 10E: Kiro IDE Adapter & Hook Configuration (.kiro/hooks/*.json)
+  └── 10E: Kiro IDE Adapter & Live Session Stream Watcher ✅ SHIPPED & VERIFIED
                            │
                            ▼
-[ Phase 11: Desktop Menu Bar / System Tray Companion & Notification Escalation (Planned — Not Started) ]
+[ Phase 11: Desktop Menu Bar / Tray Companion & Sound Management ] 🔄 IN PROGRESS
   ├── 11A: Minimal Native Tray UI (Tauri v2 / Rust + Webview, ~8MB)
   ├── 11B: Local Loopback WebSocket Transport (ws://127.0.0.1:48123)
   ├── 11C: Real-time Event Feed, Status Badges & Policy Toggle Controls
   ├── 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation (Snooze Alert System)
-  └── 11E: Custom Audio Asset Uploader & Sound Profile Manager (MP3/WAV/AIFF upload + preview)
+  └── 11E: Custom Audio Asset Manager & Sound Profile Option ✅ SHIPPED & VERIFIED
                            │
                            ▼
 [ Phase 12: Project-Aware Context Engine (Planned — Not Started) ]

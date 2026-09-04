@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { formatNotification } from "../../src/notify/macos.js";
+import { getDefaultConfig } from "../../src/cli/configManager.js";
 import type { AgentEvent } from "../../src/core/types.js";
 
 describe("formatNotification", () => {
+  const defaultConfig = getDefaultConfig();
+
   it("formats high-risk command notification with Sosumi sound", () => {
     const event: AgentEvent = {
       agent: "claude-code",
@@ -12,7 +15,7 @@ describe("formatNotification", () => {
       timestamp: Date.now(),
     };
 
-    const notif = formatNotification(event);
+    const notif = formatNotification(event, defaultConfig);
     expect(notif.title).toBe("APL: claude-code");
     expect(notif.subtitle).toContain("HIGH RISK");
     expect(notif.body).toBe("rm -rf /");

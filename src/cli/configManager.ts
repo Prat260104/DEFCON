@@ -4,6 +4,8 @@ import { homedir } from "node:os";
 import type { RiskLevel } from "../core/types.js";
 import { DEFAULT_POLICY_CONFIG, type PolicyConfig } from "../risk/policy.js";
 
+export type SoundTier = RiskLevel | "stall";
+
 export interface AplConfig {
   version: string;
   stallAlertSeconds: number;
@@ -17,6 +19,7 @@ export interface AplConfig {
   notifications: {
     enabled: boolean;
     customSoundPath?: string;
+    customSounds?: Partial<Record<SoundTier, string>>;
     builtInSound?: string;
     sounds: Record<RiskLevel, string>;
   };
@@ -32,6 +35,10 @@ export function getDefaultConfigPath(): string {
 
 export function getDefaultInboxPath(): string {
   return join(homedir(), ".apl", "inbox.jsonl");
+}
+
+export function getDefaultSoundsDir(): string {
+  return join(homedir(), ".apl", "sounds");
 }
 
 export function getDefaultConfig(): AplConfig {
@@ -78,9 +85,18 @@ export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
       : defaults.whitelistSafetyTimeoutSeconds;
 
   const rawNotifications = (raw["notifications"] as Record<string, unknown>) || {};
-  const notifications = {
+  const rawCustomSounds = (rawNotifications["customSounds"] as Record<string, unknown>) || {};
+  const customSounds: Partial<Record<SoundTier, string>> = {};
+  for (const tier of ["low", "medium", "high", "stall"] as const) {
+    if (typeof rawCustomSounds[tier] === "string" && rawCustomSounds[tier]) {
+      customSounds[tier] = rawCustomSounds[tier] as string;
+    }
+  }
+
+  const notifications: AplConfig["notifications"] = {
     enabled: typeof rawNotifications["enabled"] === "boolean" ? rawNotifications["enabled"] : defaults.notifications.enabled,
     customSoundPath: typeof rawNotifications["customSoundPath"] === "string" ? rawNotifications["customSoundPath"] : undefined,
+    customSounds: Object.keys(customSounds).length > 0 ? customSounds : undefined,
     builtInSound: typeof rawNotifications["builtInSound"] === "string" ? rawNotifications["builtInSound"] : defaults.notifications.builtInSound,
     sounds: {
       low: typeof (rawNotifications["sounds"] as any)?.low === "string" ? (rawNotifications["sounds"] as any).low : defaults.notifications.sounds.low,

@@ -20,17 +20,44 @@ export function createConfigCommand(): Command {
       }
 
       if (options.set) {
-        const [key, val] = (options.set as string).split("=");
-        if (!key || val === undefined) {
+        const eqIdx = (options.set as string).indexOf("=");
+        if (eqIdx === -1) {
           console.error("Invalid format. Use --set key=value");
           process.exit(1);
         }
+        const key = (options.set as string).slice(0, eqIdx).trim();
+        const val = (options.set as string).slice(eqIdx + 1).trim();
 
         if (key.startsWith("adapters.")) {
           const adapterName = key.replace("adapters.", "");
           config.adapters[adapterName] = val === "true" || val === "1";
         } else if (key === "notifications.enabled") {
           config.notifications.enabled = val === "true" || val === "1";
+        } else if (key === "notifications.customSoundPath") {
+          config.notifications.customSoundPath = val || undefined;
+        } else if (key === "notifications.builtInSound") {
+          config.notifications.builtInSound = val;
+        } else if (key.startsWith("notifications.customSounds.")) {
+          const tier = key.replace("notifications.customSounds.", "") as "low" | "medium" | "high" | "stall";
+          if (!config.notifications.customSounds) {
+            config.notifications.customSounds = {};
+          }
+          if (val) {
+            config.notifications.customSounds[tier] = val;
+          } else {
+            delete config.notifications.customSounds[tier];
+          }
+        } else if (key.startsWith("notifications.sounds.")) {
+          const tier = key.replace("notifications.sounds.", "") as "low" | "medium" | "high";
+          config.notifications.sounds[tier] = val;
+        } else if (key === "stallAlertSeconds") {
+          const num = parseInt(val, 10);
+          if (!isNaN(num) && num > 0) config.stallAlertSeconds = num;
+        } else if (key === "whitelistSafetyTimeoutSeconds") {
+          const num = parseInt(val, 10);
+          if (!isNaN(num) && num > 0) config.whitelistSafetyTimeoutSeconds = num;
+        } else {
+          (config as any)[key] = val;
         }
 
         saveConfig(config, configPath);
@@ -43,8 +70,17 @@ export function createConfigCommand(): Command {
         if (key.startsWith("adapters.")) {
           const adapterName = key.replace("adapters.", "");
           console.log(config.adapters[adapterName] ?? false);
+        } else if (key.startsWith("notifications.customSounds.")) {
+          const tier = key.replace("notifications.customSounds.", "") as "low" | "medium" | "high" | "stall";
+          console.log(config.notifications.customSounds?.[tier] ?? "");
+        } else if (key.startsWith("notifications.sounds.")) {
+          const tier = key.replace("notifications.sounds.", "") as "low" | "medium" | "high";
+          console.log(config.notifications.sounds[tier] ?? "");
+        } else if (key === "notifications.customSoundPath") {
+          console.log(config.notifications.customSoundPath ?? "");
         } else {
-          console.log((config as unknown as Record<string, unknown>)[key]);
+          const val = (config as unknown as Record<string, unknown>)[key];
+          console.log(typeof val === "object" ? JSON.stringify(val, null, 2) : val);
         }
         return;
       }

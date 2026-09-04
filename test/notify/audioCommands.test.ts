@@ -79,6 +79,7 @@ describe("Audio and Notification Command Dispatch Verification", () => {
 
   it("verifies macOS notification triggers afplay and osascript", async () => {
     const { sendMacNotification } = await import("../../src/notify/macos.js");
+    const { getDefaultConfig } = await import("../../src/cli/configManager.js");
     const event: AgentEvent = {
       agent: "claude-code",
       type: "permission_required",
@@ -87,7 +88,7 @@ describe("Audio and Notification Command Dispatch Verification", () => {
       timestamp: Date.now(),
     };
 
-    const result = await sendMacNotification(event);
+    const result = await sendMacNotification(event, getDefaultConfig());
     expect(result).toBe(true);
 
     // Assert osascript notification

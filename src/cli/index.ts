@@ -9,6 +9,7 @@ import { createConfigCommand } from "./commands/config.js";
 import { createHistoryCommand } from "./commands/history.js";
 import { createMcpCommand } from "./commands/mcp.js";
 import { createSetupCommand } from "./commands/setup.js";
+import { createSoundCommand } from "./commands/sound.js";
 
 const program = new Command();
 
@@ -27,5 +28,6 @@ program.addCommand(createAgentsCommand());
 program.addCommand(createConfigCommand());
 program.addCommand(createHistoryCommand());
 program.addCommand(createMcpCommand());
+program.addCommand(createSoundCommand());
 
 program.parse(process.argv);
