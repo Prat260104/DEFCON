@@ -76,42 +76,51 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
                            │
                            ▼
 [ Phase 9: Zero-Config Setup Wizard (`defcon setup`) ] ✅ SHIPPED & VERIFIED
-  ├── Auto-detection of installed agent configs (~/.claude, ~/.cursor, etc.)
+  ├── Auto-detection of installed agent configs (~/.claude, ~/.cursor, Windsurf, Cline, etc.)
   ├── Safe non-destructive JSON merge with automatic .bak backup
   ├── Idempotent execution & clean rollback (--undo / --dry-run)
   └── Guaranteed vs. Cooperative detection status reporting
                            │
                            ▼
-[ Phase 10: Additional IDE & Editor Extensions ] 🔄 IN PROGRESS
-  ├── 10A: VS Code Extension (GitHub Copilot / Cline / Continue tool execution status badge)
-  ├── 10B: OpenAI Codex CLI Adapter (src/adapters/codex.ts experimental path)
-  ├── 10C: JetBrains / WebStorm Plugin (AI Assistant tool execution hooks)
-  ├── 10D: Windsurf IDE (Codeium) MCP Integration
-  └── 10E: Kiro IDE Adapter & Live Session Stream Watcher ✅ SHIPPED & VERIFIED
+[ Phase 10E & 11E: Foundation Additions ] ✅ SHIPPED & VERIFIED
+  ├── 10E: Kiro IDE Dual-Mode Adapter (Live session watcher ~/.kiro/sessions/**/messages.jsonl)
+  └── 11E: Custom Audio Asset Manager (`defcon sound import/list/play/set-tier`, ~/.apl/sounds/)
                            │
                            ▼
-[ Phase 11: Desktop Menu Bar / Tray Companion & Sound Management ] 🔄 IN PROGRESS
+[ NEXT PRIORITY 1 — Phase 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation ] 🎯 NEXT UP
+  ├── Configurable snooze reminder loop (Alert 1 @ 35s → Alert 2 @ +60s → Alert 3 @ +120s)
+  ├── Tiered acoustic escalation (Ping → Sosumi → Basso / Custom sound)
+  ├── Instant silent cancellation on developer interaction / completion
+  └── CLI configuration flags (`defcon config --set stall.snoozeInterval=60`)
+                           │
+                           ▼
+[ NEXT PRIORITY 2 — Phase 10: High-Impact IDE Expansion (VS Code & Windsurf) ] 🔄
+  ├── 10A: VS Code Extension (`packages/vscode-apl/` status bar risk badge & Cline/Continue MCP)
+  ├── 10D: Windsurf IDE Live Session & MCP Verification
+  ├── 10B: OpenAI Codex CLI Adapter (src/adapters/codex.ts experimental path)
+  └── 10C: JetBrains / WebStorm Plugin architecture
+                           │
+                           ▼
+[ NEXT PRIORITY 3 — Phase 11A–11C: Desktop System Tray Companion ] 📋
   ├── 11A: Minimal Native Tray UI (Tauri v2 / Rust + Webview, ~8MB)
   ├── 11B: Local Loopback WebSocket Transport (ws://127.0.0.1:48123)
-  ├── 11C: Real-time Event Feed, Status Badges & Policy Toggle Controls
-  ├── 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation (Snooze Alert System)
-  └── 11E: Custom Audio Asset Manager & Sound Profile Option ✅ SHIPPED & VERIFIED
+  └── 11C: Real-time Event Feed, Status Badges & Quick Policy Toggle Controls
                            │
                            ▼
-[ Phase 12: Project-Aware Context Engine (Planned — Not Started) ]
-  ├── Local Manifest & Git Branch Inspection (package.json, Dockerfile)
-  └── Contextual Risk Tuning (e.g. staging vs prod branch environments)
+[ NEXT PRIORITY 4 — Phase 12: Project-Aware Context Engine ] 📋
+  ├── Local Manifest & Git Branch Inspection (package.json, Dockerfile, main vs feature branch)
+  └── Dynamic Contextual Risk Tuning
                            │
                            ▼
-[ Phase 13: Agentic-AI Intelligence Layer (Planned — Not Started) ]
-  ├── Behavioral Anomaly Scoring (EWMA/z-score on session risk sequences)
-  ├── Local LLM Command-Intent Explainer (Ollama, async, non-authoritative)
-  ├── Risk-Classification Evaluation Harness (precision/recall/F1 benchmark)
-  └── Session Risk Report (read-only analytics)
+[ NEXT PRIORITY 5 — Phase 13: Agentic-AI Intelligence Layer ] 📋
+  ├── 13C: Ground-Truth Risk-Classification Evaluation Benchmark Harness (300-500 test set)
+  ├── 13A: Behavioral Anomaly Scoring (EWMA/z-score on session command bursts)
+  ├── 13B: Local LLM Command-Intent Explainer (Ollama Llama 3.2 1B / Phi-3, strictly async/non-authoritative)
+  └── 13D: Session Risk Post-Run Analytics Report
                            │
                            ▼
-[ Phase 14: Centralized Team & Enterprise Governance (Planned — Not Started) ]
-  ├── GitOps Policy Sync (Centralized Corporate Blacklists/Whitelists)
+[ NEXT PRIORITY 6 — Phase 14: Centralized Team & Enterprise Governance ] 📋
+  ├── GitOps Central Policy Sync (Corporate Blacklists/Whitelists via HTTPS)
   └── OpenTelemetry & Syslog Audit Log Forwarding for Enterprise SOC Compliance
 ```
 
