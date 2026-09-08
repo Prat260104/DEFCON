@@ -15,13 +15,15 @@ APL / DEFCON is a **universal "agent is stuck, come back" alarm** with intellige
 
 ## Core Features
 
--  **Stall-Aware Alert Timer** — Does **not** annoy you if you approve within seconds. Escalates with a loud alarm only if the agent has been blocked for 30–40s (default: 35s, configurable).
--  **Whitelist Safety-Net (75s)** — Whitelisted / auto-approved commands bypass the fast timer. If a whitelisted command is still unresolved after 75s (due to IDE permission changes or config drift), APL alerts you with a drift warning.
--  **Custom Sound Profiles & Asset Manager** — Replace default system sounds (`Sosumi`, `Ping`, `Pop`) with any custom `.mp3`, `.wav`, `.aiff`, or `.ogg` audio track. Assign distinct audio cues for `low`, `medium`, `high`, and `stall` alerts. Cross-platform native playback via macOS (`afplay`), Windows (PowerShell `SoundPlayer`), and Linux (`paplay`/`pw-play`/`aplay`).
--  **Deterministic Risk Classification** — Sub-millisecond deterministic risk tagging (`low` / `medium` / `high`) added as secondary context to alert notifications (`"Agent waiting 35s — 🔴 HIGH RISK: rm -rf"`).
--  **Universal Agent Support** — Works across CLI agents (Claude Code, Gemini CLI) via lifecycle hooks, and Chat-GUI IDEs (Antigravity, Kiro) via real-time session transcript streaming and MCP tools.
--  **Active Blacklist Gating** — Intercepts and blocks catastrophic commands (`rm -rf /`, `mkfs.`, `git push --force origin main`, fork bombs) before execution.
--  **Local-First & Private** — Zero cloud dependencies, zero external API calls. Audit history stored in local SQLite (`~/.apl/events.db`).
+- **Stall-Aware Alert Timer** — Does **not** annoy you if you approve within seconds. Escalates with a loud alarm only if the agent has been blocked for 30–40s (default: 35s, configurable).
+- **Recurring Stall Reminders & Multi-Tier Acoustic Escalation (11D)** — Configurable snooze reminder loop (Alert 1 @ 35s → Alert 2 @ +60s → Alert 3 @ +120s) with escalating audio urgency (`Pop`/`Ping` → `Sosumi` → `Basso` / custom stall sound), auto-canceling upon user interaction.
+- **VS Code Status Bar & IDE Monitor (10A)** — Real-time status bar monitor (`$(shield) APL: Active`, `$(warning) APL: 🟡 Action Pending`, `$(alert) APL: 🔴 High Risk`) with live file-watching, QuickPick audit viewer, and zero-config Cline MCP setup.
+- **Whitelist Safety-Net (75s)** — Whitelisted / auto-approved commands bypass the fast timer. If a whitelisted command is still unresolved after 75s (due to IDE permission changes or config drift), APL alerts you with a drift warning.
+- **Custom Sound Profiles & Asset Manager** — Replace default system sounds (`Sosumi`, `Ping`, `Pop`) with any custom `.mp3`, `.wav`, `.aiff`, or `.ogg` audio track. Assign distinct audio cues for `low`, `medium`, `high`, and `stall` alerts. Cross-platform native playback via macOS (`afplay`), Windows (PowerShell `SoundPlayer`), and Linux (`paplay`/`pw-play`/`aplay`).
+- **Deterministic Risk Classification** — Sub-millisecond deterministic risk tagging (`low` / `medium` / `high`) added as secondary context to alert notifications (`"Agent waiting 35s — 🔴 HIGH RISK: rm -rf"`).
+- **Universal Agent Support** — Works across CLI agents (Claude Code, Gemini CLI) via lifecycle hooks, Chat-GUI IDEs (Antigravity, Kiro) via real-time session transcript streaming, and VS Code / Cline via extension and MCP.
+- **Active Blacklist Gating** — Intercepts and blocks catastrophic commands (`rm -rf /`, `mkfs.`, `git push --force origin main`, fork bombs) before execution.
+- **Local-First & Private** — Zero cloud dependencies, zero external API calls. Audit history stored in local SQLite (`~/.apl/events.db`).
 
 ---
 
@@ -29,20 +31,23 @@ APL / DEFCON is a **universal "agent is stuck, come back" alarm** with intellige
 
 There is an architectural distinction between **Terminal CLI agents** and **Chat-GUI IDE agents**:
 
-| Agent | Type | Protection Level | Technical Mechanism |
-|---|---|---|---|
-| **Claude Code** | Terminal CLI | 🟢 **Guaranteed Interception** | Native `PreToolUse` & `Notification` hooks with `session_id` command correlation |
-| **Gemini CLI** | Terminal CLI | 🟢 **Guaranteed Interception** | Native `BeforeTool` shell hook intercepts every command before execution |
-| **Kiro IDE** | Chat GUI IDE | ⚡ **Real-Time Stream Observer** | Watches `~/.kiro/sessions/**/messages.jsonl` for live GUI chat `pending_interaction` approvals + `.kiro/hooks` fallback |
-| **Antigravity IDE** | Chat GUI IDE | ⚡ **Real-Time Stream Observer** | Watches `~/.gemini/antigravity-ide/brain/**/transcript.jsonl` for unresolved `tool_calls` |
-| **Antigravity / Cursor / Claude Desktop (MCP)** | Chat GUI IDE | 🟡 **Best-Effort (Cooperative)** | Exposes `apl_execute_command` via MCP; intercepts when agent chooses tool |
+| Agent                                           | Type                  | Protection Level                   | Technical Mechanism                                                                                                     |
+| ----------------------------------------------- | --------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Claude Code**                                 | Terminal CLI          | 🟢 **Guaranteed Interception**     | Native `PreToolUse` & `Notification` hooks with `session_id` command correlation                                        |
+| **Gemini CLI**                                  | Terminal CLI          | 🟢 **Guaranteed Interception**     | Native `BeforeTool` shell hook intercepts every command before execution                                                |
+| **Kiro IDE**                                    | Chat GUI IDE          | ⚡ **Real-Time Stream Observer**   | Watches `~/.kiro/sessions/**/messages.jsonl` for live GUI chat `pending_interaction` approvals + `.kiro/hooks` fallback |
+| **Antigravity IDE**                             | Chat GUI IDE          | ⚡ **Real-Time Stream Observer**   | Watches `~/.gemini/antigravity-ide/brain/**/transcript.jsonl` for unresolved `tool_calls`                               |
+| **VS Code (`vscode-apl`)**                      | IDE Extension         | 🛡️ **Live Status Bar Monitor**     | Observes local APL daemon event stream in real time; renders dynamic risk badges and QuickPick audit history            |
+| **Cline (VS Code)**                             | IDE Extension / Agent | 🟢 **Zero-Config MCP Integration** | Auto-configured via `defcon setup`; non-destructive `cline_mcp_settings.json` merge with backup & undo                  |
+| **Antigravity / Cursor / Claude Desktop (MCP)** | Chat GUI IDE          | 🟡 **Best-Effort (Cooperative)**   | Exposes `apl_execute_command` via MCP; intercepts when agent chooses tool                                               |
 
 ---
 
 ## Quickstart & Usage
 
 ### 1. Zero-Config Setup (Recommended)
-Auto-detects installed coding agents (Claude Code, Gemini CLI, Cursor, Antigravity, Kiro, Claude Desktop) and configures them automatically without manual JSON editing:
+
+Auto-detects installed coding agents (Claude Code, Gemini CLI, Cursor, Antigravity, Kiro, Claude Desktop, Cline) and configures them automatically without manual JSON editing:
 
 ```bash
 # Preview what will be configured
@@ -54,7 +59,8 @@ defcon setup
 # Start the monitoring daemon
 defcon start
 ```
-*(Both `defcon` and `apl` CLI aliases are supported).*
+
+_(Both `defcon` and `apl` CLI aliases are supported)._
 
 ---
 
@@ -107,17 +113,52 @@ defcon sound reset
 
 ---
 
+### 4. VS Code Extension & Status Bar Monitor (`vscode-apl`)
+
+A dedicated, lightweight extension package located in [`packages/vscode-apl`](packages/vscode-apl/) gives you persistent, glanceable status-bar visibility into your coding agents' risk levels, pending approvals, and execution history directly inside VS Code:
+
+#### Live Status Bar States:
+
+- `$(shield) APL: Active` — APL daemon is running and monitoring local agents in real time.
+- `$(warning) APL: 🟡 Action Pending` — Agent is waiting for developer approval on a medium-risk action.
+- `$(alert) APL: 🔴 High Risk` — High-risk command pending developer approval (warning/error background).
+- `$(circle-slash) APL: Inactive` — Daemon is stopped; clicking prompts to run `defcon start`.
+
+#### VS Code Command Palette Actions:
+
+- **`APL: Check Daemon Status`** (`apl.checkStatus`) — Displays current daemon health and active pending command details.
+- **`APL: Show Recent Audit Logs`** (`apl.showAuditLog`) — Interactive QuickPick viewer of recent agent tool interceptions, risk levels, and timestamps.
+- **`APL: Open Configuration`** (`apl.openConfig`) — Opens `~/.apl/config.json` directly in the editor.
+- **`APL: Test Audio Alert Preview`** (`apl.testAlert`) — Plays a sample alert audio preview.
+
+#### Build & Install Extension:
+
+```bash
+cd packages/vscode-apl
+npm install
+npm run build
+npx vsce package --no-dependencies
+code --install-extension defcon-vscode-0.1.0.vsix
+```
+
+---
+
 ## Manual Configuration (Optional)
 
 If you prefer manual configuration instead of `defcon setup`:
 
 ### Claude Code Setup
+
 Add to `~/.claude/settings.json`:
+
 ```json
 {
   "hooks": {
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "cat >> ~/.apl/inbox.jsonl" }] }
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "cat >> ~/.apl/inbox.jsonl" }]
+      }
     ],
     "Notification": [
       { "matcher": "", "hooks": [{ "type": "command", "command": "cat >> ~/.apl/inbox.jsonl" }] }
@@ -127,13 +168,17 @@ Add to `~/.claude/settings.json`:
 ```
 
 ### Gemini CLI Setup
+
 See `gemini-cli-hooks.json.example` in the repository.
 
 ### Kiro IDE Setup
+
 Kiro is automatically monitored via live session stream files in `~/.kiro/sessions/`. Optional workspace hooks can also be placed in `.kiro/hooks/apl-hooks.json`.
 
-### Antigravity / Cursor / Claude Desktop (MCP Standard)
-Add to your `mcp_config.json` (e.g. `~/.gemini/config/mcp_config.json` or `.cursor/mcp.json`):
+### Antigravity / Cursor / Claude Desktop / Cline (MCP Standard)
+
+Add to your MCP configuration file (e.g. `~/.gemini/config/mcp_config.json`, `.cursor/mcp.json`, or Cline's `cline_mcp_settings.json`):
+
 ```json
 {
   "mcpServers": {
@@ -144,6 +189,8 @@ Add to your `mcp_config.json` (e.g. `~/.gemini/config/mcp_config.json` or `.curs
   }
 }
 ```
+
+_(Note: `defcon setup` automatically detects and configures Claude, Cursor, Antigravity, and Cline without manual editing)._
 
 ---
 
@@ -178,14 +225,7 @@ Add to your `mcp_config.json` (e.g. `~/.gemini/config/mcp_config.json` or `.curs
     "medium": "notify-only",
     "high": "notify-and-confirm"
   },
-  "whitelist": [
-    "git status",
-    "git log",
-    "npm test",
-    "npm run test",
-    "ls",
-    "pwd"
-  ],
+  "whitelist": ["git status", "git log", "npm test", "npm run test", "ls", "pwd"],
   "blacklist": [
     "rm -rf /",
     "rm -rf /*",
@@ -203,12 +243,12 @@ Add to your `mcp_config.json` (e.g. `~/.gemini/config/mcp_config.json` or `.curs
 
 ## Risk Levels & Decision Policy
 
-| Level | Examples | Default Action |
-|---|---|---|
-| **Low** | `git status`, `npm test`, `ls`, `cat` | Pass-through / Auto-Approve |
-| **Medium** | `npm install`, `git push`, `docker run` | 35s Stall Timer + Audible Alarm |
-| **High** | `git reset --hard`, `sudo`, `curl \| sh` | 35s Stall Timer + Loud Urgent Alarm |
-| **Blacklist** | `rm -rf /`, `mkfs.`, `git push --force origin main`, fork bombs | Immediate HARD BLOCK (`deny`) |
+| Level         | Examples                                                        | Default Action                      |
+| ------------- | --------------------------------------------------------------- | ----------------------------------- |
+| **Low**       | `git status`, `npm test`, `ls`, `cat`                           | Pass-through / Auto-Approve         |
+| **Medium**    | `npm install`, `git push`, `docker run`                         | 35s Stall Timer + Audible Alarm     |
+| **High**      | `git reset --hard`, `sudo`, `curl \| sh`                        | 35s Stall Timer + Loud Urgent Alarm |
+| **Blacklist** | `rm -rf /`, `mkfs.`, `git push --force origin main`, fork bombs | Immediate HARD BLOCK (`deny`)       |
 
 ---
 
