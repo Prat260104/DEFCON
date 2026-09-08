@@ -12,6 +12,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:tray": "cargo build --release --manifest-path packages/desktop-tray/src-tauri/Cargo.toml",
     "dev": "tsx src/cli/index.ts",
     "demo": "tsx src/demo.ts",
     "test:mcp": "tsx scripts/test-mcp.ts",

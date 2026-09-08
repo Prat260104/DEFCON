@@ -193,22 +193,27 @@ The `defcon setup` command automatically detects installed coding assistants on 
 
 ### Installation
 
-Clone the repository and install dependencies:
+Clone the repository, install dependencies, and compile:
 
 ```bash
+# 1. Clone repository and install dependencies
 git clone https://github.com/Prat260104/DEFCON.git
 cd DEFCON
 npm install
+
+# 2. Build core daemon and CLI
 npm run build
-```
 
-Link the executable globally for local development:
+# 3. Optional: Compile native desktop system tray companion (requires Rust)
+npm run build:tray
 
-```bash
+# 4. Link CLI globally for system-wide access
 npm link
 ```
 
 Both `defcon` and `apl` binary aliases will now be available in your system path.
+
+> Note: If `npm run build:tray` is omitted or the Rust toolchain is not installed, DEFCON automatically runs in terminal-only mode without errors.
 
 ### Quick Setup
 
@@ -241,6 +246,7 @@ defcon setup              # Auto-configure hooks and MCP configurations
 defcon setup --dry-run    # Inspect changes prior to applying
 defcon setup --undo       # Remove APL configurations from detected assistants
 defcon start              # Launch foreground monitoring daemon and tray companion
+defcon stop               # Gracefully stop the running background daemon
 defcon status             # Inspect active adapters and daemon state
 defcon agents             # List supported agent platforms and detection status
 defcon config             # Print active configuration
@@ -291,7 +297,7 @@ Configuration is managed in `~/.apl/config.json`. Below is a fully annotated exa
     "medium": "notify-only",
     "high": "notify-and-confirm"
   },
-  "whitelist": ["git status", "git log", "npm test", "cargo check", "ls", "pwd"],
+  "whitelist": ["git status", "git log", "npm test", "npm run test", "ls", "pwd"],
   "blacklist": [
     "rm -rf /",
     "rm -rf /*",
@@ -357,14 +363,26 @@ DEFCON exposes standard MCP tools for environments that support Model Context Pr
 - **Tool Name:** `apl_check_permission`
 - **Behavior:** Read-only pre-flight risk classification without side effects.
 
-Configuration entry for `mcpServers`:
+Configuration entry for `mcpServers` (using system-linked binary or repository path):
+
+```json
+{
+  "mcpServers": {
+    "agent-permission-layer": {
+      "command": "apl-mcp"
+    }
+  }
+}
+```
+
+Or when running from a local checkout:
 
 ```json
 {
   "mcpServers": {
     "agent-permission-layer": {
       "command": "node",
-      "args": ["<project-root>/dist/mcp/index.js"]
+      "args": ["<path-to-repository>/dist/mcp/index.js"]
     }
   }
 }
