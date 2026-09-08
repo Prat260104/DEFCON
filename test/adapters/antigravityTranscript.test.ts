@@ -110,13 +110,18 @@ describe("Antigravity Transcript Observer", () => {
       await adapter.start();
       expect((await adapter.getStatus()).running).toBe(true);
 
+      // Brief delay for OS filesystem watcher registration under heavy test load
+      await new Promise((r) => setTimeout(r, 150));
+
       // 1. Agent emits tool proposal (waiting for user click in GUI!)
       writeFileSync(
         transcriptFile,
         JSON.stringify({
           step_index: 0,
           type: "PLANNER_RESPONSE",
-          tool_calls: [{ name: "run_command", args: { CommandLine: "find . -type f -name '*.md' | wc -l" } }],
+          tool_calls: [
+            { name: "run_command", args: { CommandLine: "find . -type f -name '*.md' | wc -l" } },
+          ],
         }) + "\n",
       );
 

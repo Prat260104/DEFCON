@@ -19,7 +19,12 @@ describe("isDuplicate", () => {
     const event2 = makeEvent({ timestamp: now + 500 });
 
     const recent = [
-      { agent: event1.agent, type: event1.type, command: event1.command, timestamp: event1.timestamp },
+      {
+        agent: event1.agent,
+        type: event1.type,
+        command: event1.command,
+        timestamp: event1.timestamp,
+      },
     ];
 
     expect(isDuplicate(event2, recent, 2000)).toBe(true);
@@ -31,7 +36,12 @@ describe("isDuplicate", () => {
     const event2 = makeEvent({ timestamp: now + 3000 });
 
     const recent = [
-      { agent: event1.agent, type: event1.type, command: event1.command, timestamp: event1.timestamp },
+      {
+        agent: event1.agent,
+        type: event1.type,
+        command: event1.command,
+        timestamp: event1.timestamp,
+      },
     ];
 
     expect(isDuplicate(event2, recent, 2000)).toBe(false);
@@ -43,7 +53,12 @@ describe("isDuplicate", () => {
     const event2 = makeEvent({ command: "npm build", timestamp: now + 500 });
 
     const recent = [
-      { agent: event1.agent, type: event1.type, command: event1.command, timestamp: event1.timestamp },
+      {
+        agent: event1.agent,
+        type: event1.type,
+        command: event1.command,
+        timestamp: event1.timestamp,
+      },
     ];
 
     expect(isDuplicate(event2, recent, 2000)).toBe(false);
@@ -55,7 +70,12 @@ describe("isDuplicate", () => {
     const event2 = makeEvent({ agent: "gemini-cli", timestamp: now + 500 });
 
     const recent = [
-      { agent: event1.agent, type: event1.type, command: event1.command, timestamp: event1.timestamp },
+      {
+        agent: event1.agent,
+        type: event1.type,
+        command: event1.command,
+        timestamp: event1.timestamp,
+      },
     ];
 
     expect(isDuplicate(event2, recent, 2000)).toBe(false);
@@ -67,7 +87,12 @@ describe("isDuplicate", () => {
     const event2 = makeEvent({ type: "permission_required", timestamp: now + 500 });
 
     const recent = [
-      { agent: event1.agent, type: event1.type, command: event1.command, timestamp: event1.timestamp },
+      {
+        agent: event1.agent,
+        type: event1.type,
+        command: event1.command,
+        timestamp: event1.timestamp,
+      },
     ];
 
     expect(isDuplicate(event2, recent, 2000)).toBe(false);
@@ -84,7 +109,12 @@ describe("isDuplicate", () => {
     const event2 = makeEvent({ command: undefined, timestamp: now + 500 });
 
     const recent = [
-      { agent: event1.agent, type: event1.type, command: event1.command, timestamp: event1.timestamp },
+      {
+        agent: event1.agent,
+        type: event1.type,
+        command: event1.command,
+        timestamp: event1.timestamp,
+      },
     ];
 
     expect(isDuplicate(event2, recent, 2000)).toBe(true);

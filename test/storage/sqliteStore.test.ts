@@ -42,9 +42,27 @@ describe("SqliteEventStore", () => {
   });
 
   it("filters events by risk level", async () => {
-    await store.save({ agent: "claude-code", type: "working", command: "ls", riskLevel: "low", timestamp: 100 });
-    await store.save({ agent: "claude-code", type: "working", command: "npm install", riskLevel: "medium", timestamp: 200 });
-    await store.save({ agent: "claude-code", type: "working", command: "sudo rm -rf", riskLevel: "high", timestamp: 300 });
+    await store.save({
+      agent: "claude-code",
+      type: "working",
+      command: "ls",
+      riskLevel: "low",
+      timestamp: 100,
+    });
+    await store.save({
+      agent: "claude-code",
+      type: "working",
+      command: "npm install",
+      riskLevel: "medium",
+      timestamp: 200,
+    });
+    await store.save({
+      agent: "claude-code",
+      type: "working",
+      command: "sudo rm -rf",
+      riskLevel: "high",
+      timestamp: 300,
+    });
 
     const highRisk = await store.query({ riskLevel: "high" });
     expect(highRisk).toHaveLength(1);
@@ -56,7 +74,12 @@ describe("SqliteEventStore", () => {
   });
 
   it("filters events by agent", async () => {
-    await store.save({ agent: "claude-code", type: "working", command: "npm test", timestamp: 100 });
+    await store.save({
+      agent: "claude-code",
+      type: "working",
+      command: "npm test",
+      timestamp: 100,
+    });
     await store.save({ agent: "gemini-cli", type: "working", command: "npm test", timestamp: 200 });
 
     const claudeEvents = await store.query({ agent: "claude-code" });

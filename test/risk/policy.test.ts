@@ -93,7 +93,7 @@ describe("resolvePolicy", () => {
       "printf 'rm -rf /\\n'",
       "git push origin feature-branch",
       "git push --force origin feature-branch", // Force push to feature branch is high risk, but NOT blacklisted
-      "rm -rf ./build",                         // Scoped directory removal is NOT root wipe
+      "rm -rf ./build", // Scoped directory removal is NOT root wipe
       "rm -rf ./dist",
       "npm test",
       "git status",

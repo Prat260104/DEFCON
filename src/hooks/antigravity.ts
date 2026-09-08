@@ -52,9 +52,7 @@ export function processAntigravityHook(rawInput: string): AntigravityHookOutput 
 
   const toolName = parsed.toolCall?.name || "run_command";
   const command =
-    parsed.toolCall?.args?.CommandLine ||
-    parsed.toolCall?.args?.command ||
-    `tool:${toolName}`;
+    parsed.toolCall?.args?.CommandLine || parsed.toolCall?.args?.command || `tool:${toolName}`;
 
   const config = loadConfig();
   const riskResult = classify(command);

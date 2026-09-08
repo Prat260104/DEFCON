@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  parseClaudeCodePayload,
-  mapClaudeCodeEvent,
-} from "../../src/adapters/claudeCode.js";
+import { parseClaudeCodePayload, mapClaudeCodeEvent } from "../../src/adapters/claudeCode.js";
 
 describe("parseClaudeCodePayload", () => {
   it("parses a valid PreToolUse payload", () => {

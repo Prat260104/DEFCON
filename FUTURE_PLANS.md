@@ -53,6 +53,8 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
 | **APL MCP Server (`apl-mcp`)** | IDE / Protocol | ✅ **Built** | 🧪 **Tested (Subprocess)** | Live client verification (`scripts/test-mcp.ts`) proves tool listing, pre-flight checks, and active blocking. |
 | **Cursor / Claude Desktop (MCP)** | IDE Chat GUI | ✅ **Built** | ⚠️ **Untested on App** | Implements standard MCP JSON-RPC protocol; pending direct verification inside Desktop GUI apps. |
 | **Antigravity `.agents/hooks.json`** | IDE Chat GUI | ❌ **Non-Viable** | 🚫 **Confirmed Inactive** | Empirical test confirmed Antigravity Chat GUI mode does not execute `.agents/hooks.json`. |
+| **VS Code Extension & Cline Target (10A)** | IDE Status Bar / MCP | ✅ **Built** | 🔒 **Verified** | Live VS Code status bar transitions, real-time file watcher, command palette, and Cline MCP config merging verified on real hardware. |
+| **Recurring Stall & Acoustic Escalation (11D)** | Audio / Core Engine | ✅ **Built** | 🔒 **Verified** | Recurring stall reminders, escalation sequence (Pop/Ping → Sosumi → Basso), custom stall sound preservation, and auto-cancellation verified. |
 
 ---
 
@@ -87,15 +89,22 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
   └── 11E: Custom Audio Asset Manager (`defcon sound import/list/play/set-tier`, ~/.apl/sounds/)
                            │
                            ▼
-[ NEXT PRIORITY 1 — Phase 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation ] 🎯 NEXT UP
+[ Phase 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation ] ✅ SHIPPED & VERIFIED
   ├── Configurable snooze reminder loop (Alert 1 @ 35s → Alert 2 @ +60s → Alert 3 @ +120s)
-  ├── Tiered acoustic escalation (Ping → Sosumi → Basso / Custom sound)
+  ├── Tiered acoustic escalation (Pop/Ping → Sosumi → Basso / Custom stall sound)
   ├── Instant silent cancellation on developer interaction / completion
-  └── CLI configuration flags (`defcon config --set stall.snoozeInterval=60`)
+  └── CLI configuration flags & configManager validation
                            │
                            ▼
-[ NEXT PRIORITY 2 — Phase 10: High-Impact IDE Expansion (VS Code & Windsurf) ] 🔄
-  ├── 10A: VS Code Extension (`packages/vscode-apl/` status bar risk badge & Cline/Continue MCP)
+[ Phase 10A: VS Code Extension & Cline MCP Target ] ✅ SHIPPED & VERIFIED
+  ├── VS Code Extension package (`packages/vscode-apl/`) with dynamic status bar risk indicators
+  ├── Real-time file watcher & polling fallback on `~/.apl/inbox.jsonl`
+  ├── Centralized daemon inbox relay mirroring all live agent events
+  ├── 4 VS Code command palette actions (Check Status, Audit Logs, Open Config, Test Alert)
+  └── Cline MCP target detection & non-destructive merge in `defcon setup`
+                           │
+                           ▼
+[ NEXT PRIORITY 1 — Phase 10: Remaining IDE Expansion (Windsurf & Codex) ] 🎯 NEXT UP
   ├── 10D: Windsurf IDE Live Session & MCP Verification
   ├── 10B: OpenAI Codex CLI Adapter (src/adapters/codex.ts experimental path)
   └── 10C: JetBrains / WebStorm Plugin architecture

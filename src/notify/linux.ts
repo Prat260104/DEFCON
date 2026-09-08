@@ -41,17 +41,13 @@ function playLinuxSound(soundFilePath: string | null): void {
 export async function sendLinuxNotification(event: AgentEvent): Promise<boolean> {
   return new Promise((resolve) => {
     const { title, subtitle, body, soundFilePath } = formatNotification(event);
-    const urgency = event.riskLevel === "high" ? "critical" : event.riskLevel === "medium" ? "normal" : "low";
+    const urgency =
+      event.riskLevel === "high" ? "critical" : event.riskLevel === "medium" ? "normal" : "low";
 
     // Trigger audible audio playback
     playLinuxSound(soundFilePath);
 
-    const args = [
-      "-a", "Agent Permission Layer",
-      "-u", urgency,
-      title,
-      `${subtitle}\n${body}`,
-    ];
+    const args = ["-a", "Agent Permission Layer", "-u", urgency, title, `${subtitle}\n${body}`];
 
     execFile("notify-send", args, (error) => {
       if (error) {

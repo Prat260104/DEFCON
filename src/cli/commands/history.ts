@@ -35,7 +35,9 @@ export function createHistoryCommand(): Command {
 
         console.log(`\n  🛡️  APL Event Audit Log (${events.length} events)\n`);
         console.log("  TIME       RISK     AGENT        TYPE                 COMMAND");
-        console.log("  ─────────  ───────  ───────────  ───────────────────  ────────────────────────────────");
+        console.log(
+          "  ─────────  ───────  ───────────  ───────────────────  ────────────────────────────────",
+        );
 
         for (const event of events) {
           const time = new Date(event.timestamp).toLocaleTimeString();

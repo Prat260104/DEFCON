@@ -5,7 +5,9 @@ export function createSetupCommand(): Command {
   const cmd = new Command("setup");
 
   cmd
-    .description("Zero-config setup wizard to auto-configure APL across detected coding agents and IDEs")
+    .description(
+      "Zero-config setup wizard to auto-configure APL across detected coding agents and IDEs",
+    )
     .option("--dry-run", "Preview configuration changes without writing to disk")
     .option("--undo", "Cleanly remove APL hook and MCP configurations, restoring previous settings")
     .action(async (options) => {
@@ -28,7 +30,14 @@ export function createSetupCommand(): Command {
         for (const res of results) {
           console.log(` ${res.message}`);
           if (options.dryRun && res.diff) {
-            console.log("\n" + res.diff.split("\n").map((l) => `    ${l}`).join("\n") + "\n");
+            console.log(
+              "\n" +
+                res.diff
+                  .split("\n")
+                  .map((l) => `    ${l}`)
+                  .join("\n") +
+                "\n",
+            );
           }
         }
 

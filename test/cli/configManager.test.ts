@@ -90,8 +90,12 @@ describe("Config Validation & Sanitization", () => {
     });
 
     it("falls back to default (60s) for invalid or negative repeatAlertIntervalSeconds", () => {
-      expect(sanitizeConfig({ repeatAlertIntervalSeconds: "invalid" }).repeatAlertIntervalSeconds).toBe(60);
-      expect(sanitizeConfig({ repeatAlertIntervalSeconds: -15 }).repeatAlertIntervalSeconds).toBe(60);
+      expect(
+        sanitizeConfig({ repeatAlertIntervalSeconds: "invalid" }).repeatAlertIntervalSeconds,
+      ).toBe(60);
+      expect(sanitizeConfig({ repeatAlertIntervalSeconds: -15 }).repeatAlertIntervalSeconds).toBe(
+        60,
+      );
       expect(sanitizeConfig({ repeatAlertIntervalSeconds: 0 }).repeatAlertIntervalSeconds).toBe(60);
     });
 

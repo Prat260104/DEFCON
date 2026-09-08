@@ -1,0 +1,68 @@
+{
+  "name": "defcon-vscode",
+  "displayName": "Agent Permission Layer (DEFCON)",
+  "description": "Real-time security & stall alerting status bar monitor for Claude Code, Gemini CLI, Cline, and AI coding agents",
+  "version": "0.1.0",
+  "publisher": "defcon-apl",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "apl.checkStatus",
+        "title": "APL: Check Daemon Status"
+      },
+      {
+        "command": "apl.showAuditLog",
+        "title": "APL: Show Recent Audit Logs"
+      },
+      {
+        "command": "apl.openConfig",
+        "title": "APL: Open Configuration"
+      },
+      {
+        "command": "apl.testAlert",
+        "title": "APL: Test Audio Alert Preview"
+      }
+    ],
+    "configuration": {
+      "title": "Agent Permission Layer (DEFCON)",
+      "properties": {
+        "apl.enableStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the APL agent risk status indicator in the VS Code status bar."
+        },
+        "apl.inboxPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to ~/.apl/inbox.jsonl relay file if running non-default path."
+        },
+        "apl.pollIntervalSeconds": {
+          "type": "number",
+          "default": 2,
+          "description": "Polling interval in seconds to refresh agent state from disk."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "tsc -p .",
+    "watch": "tsc -watch -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.6.0"
+  }
+}

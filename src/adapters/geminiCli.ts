@@ -47,15 +47,15 @@ export function parseGeminiCliPayload(line: string): GeminiCliPayload | null {
 
     const obj = parsed as Record<string, unknown>;
 
-    // Match if agent is explicitly gemini-cli or event matches Gemini CLI lifecycle
-    const isGeminiAgent = obj["agent"] === "gemini-cli";
+    // Match if event matches Gemini CLI lifecycle
     const hasGeminiEvent =
       obj["event"] === "BeforeTool" ||
       obj["event"] === "before_tool" ||
       obj["event"] === "Notification" ||
       obj["event"] === "notification";
 
-    if (isGeminiAgent || hasGeminiEvent) {
+    // Must have a valid Gemini CLI lifecycle event, not a normalized AgentEvent
+    if (hasGeminiEvent) {
       return obj as unknown as GeminiCliPayload;
     }
 
@@ -78,7 +78,10 @@ export function mapGeminiCliEvent(payload: GeminiCliPayload): AgentEvent {
     },
   };
 
-  const isBeforeTool = payload.event === "BeforeTool" || payload.event === "before_tool" || (payload as GeminiCliBeforeToolPayload).tool_input !== undefined;
+  const isBeforeTool =
+    payload.event === "BeforeTool" ||
+    payload.event === "before_tool" ||
+    (payload as GeminiCliBeforeToolPayload).tool_input !== undefined;
 
   if (isBeforeTool) {
     const toolPayload = payload as GeminiCliBeforeToolPayload;

@@ -3,12 +3,7 @@
  */
 
 export type SetupTargetId =
-  | "claude-code"
-  | "gemini-cli"
-  | "cursor"
-  | "antigravity"
-  | "claude-desktop"
-  | "kiro";
+  "claude-code" | "gemini-cli" | "cursor" | "antigravity" | "claude-desktop" | "kiro" | "cline";
 
 export type TargetKind = "hook" | "mcp";
 

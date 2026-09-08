@@ -4,7 +4,14 @@ import { execFile, exec } from "node:child_process";
 import type { AgentEvent, RiskLevel } from "../core/types.js";
 import { getDefaultSoundsDir, type AplConfig, type SoundTier } from "../cli/configManager.js";
 
-export const SUPPORTED_AUDIO_EXTENSIONS = [".mp3", ".wav", ".aiff", ".aif", ".ogg", ".m4a"] as const;
+export const SUPPORTED_AUDIO_EXTENSIONS = [
+  ".mp3",
+  ".wav",
+  ".aiff",
+  ".aif",
+  ".ogg",
+  ".m4a",
+] as const;
 
 export const BUILT_IN_MACOS_SOUNDS = [
   "Pop",
@@ -73,7 +80,7 @@ export function validateAudioFile(filePath: string): { valid: boolean; error?: s
  */
 export function sanitizeSoundName(rawName: string): string {
   return rawName
-    .replace(/[^a-zA-Z0-9_\-\.]/g, "_")
+    .replace(/[^a-zA-Z0-9_\-.]/g, "_")
     .replace(/^_+|_+$/g, "")
     .trim();
 }
@@ -84,7 +91,7 @@ export function sanitizeSoundName(rawName: string): string {
 export function importSoundFile(
   sourcePath: string,
   customName?: string,
-  soundsDir: string = getDefaultSoundsDir()
+  soundsDir: string = getDefaultSoundsDir(),
 ): { success: boolean; destPath?: string; soundName?: string; error?: string } {
   const validation = validateAudioFile(sourcePath);
   if (!validation.valid) {
@@ -176,7 +183,7 @@ export function listSoundAssets(soundsDir: string = getDefaultSoundsDir()): {
  */
 export function removeSoundAsset(
   soundNameOrFilename: string,
-  soundsDir: string = getDefaultSoundsDir()
+  soundsDir: string = getDefaultSoundsDir(),
 ): { success: boolean; error?: string } {
   if (!existsSync(soundsDir)) {
     return { success: false, error: "Sounds directory does not exist" };
@@ -186,7 +193,7 @@ export function removeSoundAsset(
   const target = custom.find(
     (item) =>
       item.name.toLowerCase() === soundNameOrFilename.toLowerCase() ||
-      item.filename.toLowerCase() === soundNameOrFilename.toLowerCase()
+      item.filename.toLowerCase() === soundNameOrFilename.toLowerCase(),
   );
 
   if (!target) {
@@ -220,10 +227,11 @@ export function removeSoundAsset(
  */
 export function resolveSoundForEvent(
   event: AgentEvent,
-  config: AplConfig
+  config: AplConfig,
 ): { soundName: string; soundFilePath: string | null } {
   const risk = event.riskLevel ?? "medium";
-  const isStall = Boolean(event.metadata?.["isStallAlert"]) || Boolean(event.metadata?.["isWhitelistDrift"]);
+  const isStall =
+    Boolean(event.metadata?.["isStallAlert"]) || Boolean(event.metadata?.["isWhitelistDrift"]);
   const escalationLevel = event.metadata?.["escalationLevel"] as number | undefined;
 
   const customSounds = config.notifications?.customSounds;
@@ -255,13 +263,17 @@ export function resolveSoundForEvent(
     if (escalationLevel !== undefined) {
       // Alert 3+: Maximum-urgency acoustic tone (Basso)
       if (escalationLevel >= 3) {
-        const soundFilePath = existsSync("/System/Library/Sounds/Basso.aiff") ? "/System/Library/Sounds/Basso.aiff" : null;
+        const soundFilePath = existsSync("/System/Library/Sounds/Basso.aiff")
+          ? "/System/Library/Sounds/Basso.aiff"
+          : null;
         return { soundName: "Basso", soundFilePath };
       }
 
       // Alert 2: High-urgency alert (Sosumi)
       if (escalationLevel === 2) {
-        const soundFilePath = existsSync("/System/Library/Sounds/Sosumi.aiff") ? "/System/Library/Sounds/Sosumi.aiff" : null;
+        const soundFilePath = existsSync("/System/Library/Sounds/Sosumi.aiff")
+          ? "/System/Library/Sounds/Sosumi.aiff"
+          : null;
         return { soundName: "Sosumi", soundFilePath };
       }
     }
@@ -280,7 +292,9 @@ export function resolveSoundForEvent(
       };
     }
     const soundName = config.notifications?.sounds?.[risk] || DEFAULT_RISK_SOUND_MAP[risk] || "Pop";
-    const soundFilePath = existsSync(`/System/Library/Sounds/${soundName}.aiff`) ? `/System/Library/Sounds/${soundName}.aiff` : null;
+    const soundFilePath = existsSync(`/System/Library/Sounds/${soundName}.aiff`)
+      ? `/System/Library/Sounds/${soundName}.aiff`
+      : null;
     return { soundName, soundFilePath };
   }
 
@@ -302,7 +316,8 @@ export function resolveSoundForEvent(
   }
 
   // 3. Built-in sounds
-  let soundName = config.notifications?.sounds?.[risk] || DEFAULT_RISK_SOUND_MAP[risk] || "Sosumi";
+  const soundName =
+    config.notifications?.sounds?.[risk] || DEFAULT_RISK_SOUND_MAP[risk] || "Sosumi";
   let soundFilePath: string | null = `/System/Library/Sounds/${soundName}.aiff`;
   if (!existsSync(soundFilePath)) {
     soundFilePath = null;
@@ -363,14 +378,18 @@ export async function playAudio(filePathOrBuiltin: string): Promise<boolean> {
            }`
         : `[System.Media.SystemSounds]::Exclamation.Play()`;
 
-      execFile("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psScript], (error) => {
-        if (error) {
-          console.warn(`[soundManager] Windows audio playback failed: ${error.message}`);
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
+      execFile(
+        "powershell",
+        ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psScript],
+        (error) => {
+          if (error) {
+            console.warn(`[soundManager] Windows audio playback failed: ${error.message}`);
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        },
+      );
     } else if (platform === "linux") {
       // Linux audio playback using PulseAudio, PipeWire, ALSA, mpv, or ffplay
       if (existsSync(targetPath)) {

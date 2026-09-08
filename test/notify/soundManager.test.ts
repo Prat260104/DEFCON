@@ -181,29 +181,38 @@ describe("soundManager", () => {
         };
 
         // Alert 1 (Level 1)
-        const lvl1 = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "low",
-          metadata: { isStallAlert: true, escalationLevel: 1 },
-        }, config);
+        const lvl1 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "low",
+            metadata: { isStallAlert: true, escalationLevel: 1 },
+          },
+          config,
+        );
         expect(lvl1.soundName).toBe("siren");
         expect(lvl1.soundFilePath).toBe(customStallAudio);
 
         // Alert 2 (Level 2)
-        const lvl2 = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "medium",
-          metadata: { isStallAlert: true, escalationLevel: 2 },
-        }, config);
+        const lvl2 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "medium",
+            metadata: { isStallAlert: true, escalationLevel: 2 },
+          },
+          config,
+        );
         expect(lvl2.soundName).toBe("siren");
         expect(lvl2.soundFilePath).toBe(customStallAudio);
 
         // Alert 3 (Level 3)
-        const lvl3 = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "high",
-          metadata: { isStallAlert: true, escalationLevel: 3 },
-        }, config);
+        const lvl3 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "high",
+            metadata: { isStallAlert: true, escalationLevel: 3 },
+          },
+          config,
+        );
         expect(lvl3.soundName).toBe("siren");
         expect(lvl3.soundFilePath).toBe(customStallAudio);
       });
@@ -212,34 +221,46 @@ describe("soundManager", () => {
         const config = getDefaultConfig();
 
         // Alert 1 (Level 1) - Low risk -> Pop, Medium risk -> Ping, High risk -> Sosumi
-        const lvl1Low = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "low",
-          metadata: { isStallAlert: true, escalationLevel: 1 },
-        }, config);
+        const lvl1Low = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "low",
+            metadata: { isStallAlert: true, escalationLevel: 1 },
+          },
+          config,
+        );
         expect(lvl1Low.soundName).toBe("Pop");
 
-        const lvl1Med = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "medium",
-          metadata: { isStallAlert: true, escalationLevel: 1 },
-        }, config);
+        const lvl1Med = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "medium",
+            metadata: { isStallAlert: true, escalationLevel: 1 },
+          },
+          config,
+        );
         expect(lvl1Med.soundName).toBe("Ping");
 
         // Alert 2 (Level 2) - Escalates to Sosumi
-        const lvl2 = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "low",
-          metadata: { isStallAlert: true, escalationLevel: 2 },
-        }, config);
+        const lvl2 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "low",
+            metadata: { isStallAlert: true, escalationLevel: 2 },
+          },
+          config,
+        );
         expect(lvl2.soundName).toBe("Sosumi");
 
         // Alert 3 (Level 3) - Escalates to Basso
-        const lvl3 = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "low",
-          metadata: { isStallAlert: true, escalationLevel: 3 },
-        }, config);
+        const lvl3 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "low",
+            metadata: { isStallAlert: true, escalationLevel: 3 },
+          },
+          config,
+        );
         expect(lvl3.soundName).toBe("Basso");
       });
 
@@ -257,11 +278,14 @@ describe("soundManager", () => {
           },
         };
 
-        const resolved = resolveSoundForEvent({
-          ...baseEvent,
-          riskLevel: "low",
-          metadata: { isStallAlert: true, escalationLevel: 1 },
-        }, config);
+        const resolved = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            riskLevel: "low",
+            metadata: { isStallAlert: true, escalationLevel: 1 },
+          },
+          config,
+        );
         expect(resolved.soundName).toBe("custom-low");
         expect(resolved.soundFilePath).toBe(customLowAudio);
       });
@@ -283,22 +307,31 @@ describe("soundManager", () => {
           },
         };
 
-        const lvl1 = resolveSoundForEvent({
-          ...baseEvent,
-          metadata: { isStallAlert: true, escalationLevel: 1 },
-        }, config);
+        const lvl1 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            metadata: { isStallAlert: true, escalationLevel: 1 },
+          },
+          config,
+        );
         expect(lvl1.soundName).toBe("stall-default");
 
-        const lvl2 = resolveSoundForEvent({
-          ...baseEvent,
-          metadata: { isStallAlert: true, escalationLevel: 2 },
-        }, config);
+        const lvl2 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            metadata: { isStallAlert: true, escalationLevel: 2 },
+          },
+          config,
+        );
         expect(lvl2.soundName).toBe("stall-lvl2");
 
-        const lvl3 = resolveSoundForEvent({
-          ...baseEvent,
-          metadata: { isStallAlert: true, escalationLevel: 3 },
-        }, config);
+        const lvl3 = resolveSoundForEvent(
+          {
+            ...baseEvent,
+            metadata: { isStallAlert: true, escalationLevel: 3 },
+          },
+          config,
+        );
         expect(lvl3.soundName).toBe("stall-default");
       });
     });

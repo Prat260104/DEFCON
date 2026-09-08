@@ -32,7 +32,7 @@ function escapeAppleScript(str: string): string {
  */
 export function formatNotification(
   event: AgentEvent,
-  configOverride?: AplConfig
+  configOverride?: AplConfig,
 ): {
   title: string;
   subtitle: string;
@@ -84,10 +84,13 @@ export function formatNotification(
  */
 export async function sendMacNotification(
   event: AgentEvent,
-  configOverride?: AplConfig
+  configOverride?: AplConfig,
 ): Promise<boolean> {
   return new Promise((resolve) => {
-    const { title, subtitle, body, soundName, soundFilePath } = formatNotification(event, configOverride);
+    const { title, subtitle, body, soundName, soundFilePath } = formatNotification(
+      event,
+      configOverride,
+    );
 
     // Play native system sound or custom audio file directly via afplay
     if (soundFilePath && existsSync(soundFilePath)) {

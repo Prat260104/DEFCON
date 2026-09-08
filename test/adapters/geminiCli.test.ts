@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  parseGeminiCliPayload,
-  mapGeminiCliEvent,
-} from "../../src/adapters/geminiCli.js";
+import { parseGeminiCliPayload, mapGeminiCliEvent } from "../../src/adapters/geminiCli.js";
 
 describe("parseGeminiCliPayload", () => {
   it("parses BeforeTool payload", () => {

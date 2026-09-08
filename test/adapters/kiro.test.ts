@@ -22,33 +22,36 @@ describe("checkKiroSessionPending (GUI Transcript Observer)", () => {
   afterEach(() => {
     try {
       rmSync(testDir, { recursive: true, force: true });
-    } catch {}
+    } catch {
+      // Ignored: cleanup error
+    }
   });
 
   it("detects pending tool approval interaction from real Kiro format", () => {
-    const lines = [
-      JSON.stringify({
-        id: "turn-start-1",
-        timestamp: new Date().toISOString(),
-        payload: { type: "turn_start" },
-      }),
-      JSON.stringify({
-        id: "msg-1",
-        timestamp: new Date().toISOString(),
-        payload: { type: "assistant", content: "I will run echo find" },
-      }),
-      JSON.stringify({
-        id: "run_command_tooluse_123-pending",
-        timestamp: new Date().toISOString(),
-        payload: {
-          type: "pending_interaction",
-          interactionType: "tool_approval",
-          toolCallId: "run_command_tooluse_123",
-          question: 'echo "find"',
-          options: [{ optionId: "accept", name: "Allow" }],
-        },
-      }),
-    ].join("\n") + "\n";
+    const lines =
+      [
+        JSON.stringify({
+          id: "turn-start-1",
+          timestamp: new Date().toISOString(),
+          payload: { type: "turn_start" },
+        }),
+        JSON.stringify({
+          id: "msg-1",
+          timestamp: new Date().toISOString(),
+          payload: { type: "assistant", content: "I will run echo find" },
+        }),
+        JSON.stringify({
+          id: "run_command_tooluse_123-pending",
+          timestamp: new Date().toISOString(),
+          payload: {
+            type: "pending_interaction",
+            interactionType: "tool_approval",
+            toolCallId: "run_command_tooluse_123",
+            question: 'echo "find"',
+            options: [{ optionId: "accept", name: "Allow" }],
+          },
+        }),
+      ].join("\n") + "\n";
 
     writeFileSync(messagesPath, lines);
 
@@ -59,28 +62,29 @@ describe("checkKiroSessionPending (GUI Transcript Observer)", () => {
   });
 
   it("returns not pending when tool_result resolves the interaction", () => {
-    const lines = [
-      JSON.stringify({
-        id: "run_command_tooluse_123-pending",
-        timestamp: new Date().toISOString(),
-        payload: {
-          type: "pending_interaction",
-          interactionType: "tool_approval",
-          toolCallId: "run_command_tooluse_123",
-          question: 'echo "find"',
-        },
-      }),
-      JSON.stringify({
-        id: "run_command_tooluse_123-result",
-        timestamp: new Date().toISOString(),
-        payload: {
-          type: "tool_result",
-          toolCallId: "run_command_tooluse_123",
-          content: "find",
-          success: true,
-        },
-      }),
-    ].join("\n") + "\n";
+    const lines =
+      [
+        JSON.stringify({
+          id: "run_command_tooluse_123-pending",
+          timestamp: new Date().toISOString(),
+          payload: {
+            type: "pending_interaction",
+            interactionType: "tool_approval",
+            toolCallId: "run_command_tooluse_123",
+            question: 'echo "find"',
+          },
+        }),
+        JSON.stringify({
+          id: "run_command_tooluse_123-result",
+          timestamp: new Date().toISOString(),
+          payload: {
+            type: "tool_result",
+            toolCallId: "run_command_tooluse_123",
+            content: "find",
+            success: true,
+          },
+        }),
+      ].join("\n") + "\n";
 
     writeFileSync(messagesPath, lines);
 
@@ -102,7 +106,9 @@ describe("KiroAdapter Live GUI Watcher", () => {
   afterEach(() => {
     try {
       rmSync(testDir, { recursive: true, force: true });
-    } catch {}
+    } catch {
+      // Ignored: cleanup error
+    }
   });
 
   it("watches session messages.jsonl and emits permission_required and completed events", async () => {

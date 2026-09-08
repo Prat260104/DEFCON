@@ -105,7 +105,9 @@ export function checkKiroSessionPending(
         command: pendingCommand,
         toolCallId: pendingToolCallId,
         isWhitelisted,
-        reason: isWhitelisted ? "Command is whitelisted (tracked with safety-net timeout)" : undefined,
+        reason: isWhitelisted
+          ? "Command is whitelisted (tracked with safety-net timeout)"
+          : undefined,
       };
     }
   } catch (fileErr) {
@@ -194,8 +196,7 @@ export function mapKiroEvent(
           : undefined;
 
     const riskLevel = command ? classify(command).level : undefined;
-    const type: AgentEventType =
-      payload.status === "pending" ? "permission_required" : "working";
+    const type: AgentEventType = payload.status === "pending" ? "permission_required" : "working";
 
     if (payload.session_id && command) {
       cache.set(payload.session_id, { command, riskLevel, timestamp: Date.now() });
@@ -280,7 +281,9 @@ export class KiroAdapter implements AgentAdapter {
     if (!existsSync(this.kiroSessionsDir)) {
       try {
         mkdirSync(this.kiroSessionsDir, { recursive: true });
-      } catch {}
+      } catch {
+        // Directory may already exist or fail if permissions are restricted
+      }
     }
 
     this.sessionWatcher = chokidar.watch(this.kiroSessionsDir, {

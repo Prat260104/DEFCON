@@ -61,7 +61,10 @@ export const DEFAULT_POLICY_CONFIG: PolicyConfig = {
  * Handles whitespace normalization, flag permutations, and ensures commands
  * wrapped in echo/printf are not falsely blocked.
  */
-export function isBlacklisted(command: string, customBlacklist: string[] = DEFAULT_POLICY_CONFIG.blacklist): { matched: boolean; reason?: string } {
+export function isBlacklisted(
+  command: string,
+  customBlacklist: string[] = DEFAULT_POLICY_CONFIG.blacklist,
+): { matched: boolean; reason?: string } {
   const trimmed = command.trim();
   if (!trimmed) return { matched: false };
 
@@ -107,7 +110,8 @@ function matchesList(command: string, list: string[]): boolean {
   return list.some((item) => {
     const itemTrimmed = item.trim();
     if (trimmed === itemTrimmed) return true;
-    if (trimmed.startsWith(`${itemTrimmed} `) || trimmed.startsWith(`${itemTrimmed}\t`)) return true;
+    if (trimmed.startsWith(`${itemTrimmed} `) || trimmed.startsWith(`${itemTrimmed}\t`))
+      return true;
     return false;
   });
 }

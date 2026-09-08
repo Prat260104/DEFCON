@@ -12,7 +12,7 @@ import { homedir } from "node:os";
  * - If last step is PLANNER_RESPONSE with tool_calls and no subsequent step,
  *   the IDE is currently rendering an "Allow/Deny" prompt on screen!
  */
-import { resolvePolicy, DEFAULT_POLICY_CONFIG, type PolicyConfig } from "../risk/policy.js";
+import { resolvePolicy, type PolicyConfig } from "../risk/policy.js";
 import { loadConfig } from "../cli/configManager.js";
 
 export interface PendingApprovalResult {
@@ -42,7 +42,11 @@ export function checkAntigravityPendingApproval(
 
     try {
       const step = JSON.parse(lastLine);
-      if (step.type === "PLANNER_RESPONSE" && Array.isArray(step.tool_calls) && step.tool_calls.length > 0) {
+      if (
+        step.type === "PLANNER_RESPONSE" &&
+        Array.isArray(step.tool_calls) &&
+        step.tool_calls.length > 0
+      ) {
         const toolCall = step.tool_calls[0];
         const command =
           (toolCall.args?.CommandLine as string) ||
@@ -60,7 +64,9 @@ export function checkAntigravityPendingApproval(
           command,
           args: toolCall.args,
           isWhitelisted,
-          reason: isWhitelisted ? "Command is whitelisted (tracked with safety-net timeout)" : undefined,
+          reason: isWhitelisted
+            ? "Command is whitelisted (tracked with safety-net timeout)"
+            : undefined,
         };
       }
     } catch (parseErr) {

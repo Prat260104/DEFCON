@@ -228,7 +228,7 @@ describe("classify", () => {
 
     it.each([
       ["git clean -fd", "git clean force"],
-      ["eval \"some code\"", "eval execution"],
+      ['eval "some code"', "eval execution"],
       ["dd if=/dev/zero of=/dev/sda", "disk dump"],
       ["kill -9 12345", "force kill"],
     ])("classifies '%s' as high (%s)", (command, expectedLabel) => {

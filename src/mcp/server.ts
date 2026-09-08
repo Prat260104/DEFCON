@@ -26,7 +26,10 @@ export function createAplMcpServer(storage?: SqliteEventStore): McpServer {
     {
       command: z.string().describe("The shell command to evaluate and execute"),
       cwd: z.string().optional().describe("Working directory for command execution"),
-      timeoutMs: z.number().optional().describe("Execution timeout in milliseconds (default: 60000ms)"),
+      timeoutMs: z
+        .number()
+        .optional()
+        .describe("Execution timeout in milliseconds (default: 60000ms)"),
     },
     async ({ command, cwd, timeoutMs }) => {
       const config = loadConfig();
@@ -88,7 +91,7 @@ export function createAplMcpServer(storage?: SqliteEventStore): McpServer {
             type: statusType,
             metadata: {
               ...event.metadata,
-              exitCode: error ? error.code ?? 1 : 0,
+              exitCode: error ? (error.code ?? 1) : 0,
             },
           });
 

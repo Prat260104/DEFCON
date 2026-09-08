@@ -21,7 +21,9 @@ export async function notify(event: AgentEvent): Promise<boolean> {
         return await sendLinuxNotification(event);
       default:
         console.warn(`[notify] Unsupported platform: ${platform}. Logging to terminal instead.`);
-        console.log(`[APL Alert] [${event.riskLevel?.toUpperCase() ?? "UNKNOWN"}] ${event.agent}: ${event.command ?? event.type}`);
+        console.log(
+          `[APL Alert] [${event.riskLevel?.toUpperCase() ?? "UNKNOWN"}] ${event.agent}: ${event.command ?? event.type}`,
+        );
         return false;
     }
   } catch (error) {

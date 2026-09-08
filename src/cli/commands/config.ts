@@ -38,7 +38,8 @@ export function createConfigCommand(): Command {
         } else if (key === "notifications.builtInSound") {
           config.notifications.builtInSound = val;
         } else if (key.startsWith("notifications.customSounds.")) {
-          const tier = key.replace("notifications.customSounds.", "") as "low" | "medium" | "high" | "stall";
+          const tier = key.replace("notifications.customSounds.", "") as
+            "low" | "medium" | "high" | "stall";
           if (!config.notifications.customSounds) {
             config.notifications.customSounds = {};
           }
@@ -57,7 +58,10 @@ export function createConfigCommand(): Command {
             if (!config.stall) config.stall = {};
             config.stall.stallAlertSeconds = num;
           }
-        } else if (key === "repeatAlertIntervalSeconds" || key === "stall.repeatAlertIntervalSeconds") {
+        } else if (
+          key === "repeatAlertIntervalSeconds" ||
+          key === "stall.repeatAlertIntervalSeconds"
+        ) {
           const num = parseInt(val, 10);
           if (!isNaN(num) && num > 0) {
             config.repeatAlertIntervalSeconds = num;
@@ -89,14 +93,18 @@ export function createConfigCommand(): Command {
           const adapterName = key.replace("adapters.", "");
           console.log(config.adapters[adapterName] ?? false);
         } else if (key.startsWith("notifications.customSounds.")) {
-          const tier = key.replace("notifications.customSounds.", "") as "low" | "medium" | "high" | "stall";
+          const tier = key.replace("notifications.customSounds.", "") as
+            "low" | "medium" | "high" | "stall";
           console.log(config.notifications.customSounds?.[tier] ?? "");
         } else if (key.startsWith("notifications.sounds.")) {
           const tier = key.replace("notifications.sounds.", "") as "low" | "medium" | "high";
           console.log(config.notifications.sounds[tier] ?? "");
         } else if (key === "notifications.customSoundPath") {
           console.log(config.notifications.customSoundPath ?? "");
-        } else if (key === "stall.repeatAlertIntervalSeconds" || key === "repeatAlertIntervalSeconds") {
+        } else if (
+          key === "stall.repeatAlertIntervalSeconds" ||
+          key === "repeatAlertIntervalSeconds"
+        ) {
           console.log(config.repeatAlertIntervalSeconds);
         } else if (key === "stall.maxRepeatAlerts" || key === "maxRepeatAlerts") {
           console.log(config.maxRepeatAlerts);

@@ -428,7 +428,7 @@ export const TARGET_DEFINITIONS: Record<SetupTargetId, TargetDefinition> = {
     },
   },
 
-  "kiro": {
+  kiro: {
     id: "kiro",
     name: "Kiro IDE",
     kind: "hook",
@@ -507,5 +507,106 @@ export const TARGET_DEFINITIONS: Record<SetupTargetId, TargetDefinition> = {
       return { updated: root, changed };
     },
   },
+
+  cline: {
+    id: "cline",
+    name: "Cline",
+    kind: "mcp",
+    description: "Cline (VS Code) autonomous coding agent MCP integration",
+    manualStepNote: "MCP config installed, reload VS Code window to activate",
+    detect: (customPath?: string) => {
+      if (customPath) return existsSync(customPath);
+      const cfgPath = getClineDefaultConfigPath();
+      const extDir = join(cfgPath, "..", "..");
+      return existsSync(cfgPath) || existsSync(extDir);
+    },
+    getDefaultConfigPath: () => getClineDefaultConfigPath(),
+    mergeConfig: (existing = {}, mcpPath: string) => {
+      const root = typeof existing === "object" && existing !== null ? { ...existing } : {};
+      const servers =
+        typeof root.mcpServers === "object" && root.mcpServers !== null
+          ? { ...root.mcpServers }
+          : {};
+
+      const current = servers["agent-permission-layer"];
+      if (
+        current &&
+        current.command === "node" &&
+        Array.isArray(current.args) &&
+        current.args[0] === mcpPath
+      ) {
+        return { updated: root, changed: false, alreadyConfigured: true };
+      }
+
+      servers["agent-permission-layer"] = {
+        command: "node",
+        args: [mcpPath],
+      };
+      root.mcpServers = servers;
+
+      return { updated: root, changed: true, alreadyConfigured: false };
+    },
+    undoConfig: (existing = {}) => {
+      if (typeof existing !== "object" || existing === null) {
+        return { updated: existing, changed: false };
+      }
+      const root = { ...existing };
+      if (!root.mcpServers || typeof root.mcpServers !== "object") {
+        return { updated: root, changed: false };
+      }
+
+      const servers = { ...root.mcpServers };
+      if (!("agent-permission-layer" in servers)) {
+        return { updated: root, changed: false };
+      }
+
+      delete servers["agent-permission-layer"];
+      if (Object.keys(servers).length === 0) {
+        delete root.mcpServers;
+      } else {
+        root.mcpServers = servers;
+      }
+
+      return { updated: root, changed: true };
+    },
+  },
 };
 
+export function getClineDefaultConfigPath(): string {
+  const os = platform();
+  if (os === "darwin") {
+    return join(
+      homedir(),
+      "Library",
+      "Application Support",
+      "Code",
+      "User",
+      "globalStorage",
+      "saoudrizwan.claude-dev",
+      "settings",
+      "cline_mcp_settings.json",
+    );
+  }
+  if (os === "win32") {
+    const appData = process.env["APPDATA"] || join(homedir(), "AppData", "Roaming");
+    return join(
+      appData,
+      "Code",
+      "User",
+      "globalStorage",
+      "saoudrizwan.claude-dev",
+      "settings",
+      "cline_mcp_settings.json",
+    );
+  }
+  return join(
+    homedir(),
+    ".config",
+    "Code",
+    "User",
+    "globalStorage",
+    "saoudrizwan.claude-dev",
+    "settings",
+    "cline_mcp_settings.json",
+  );
+}

@@ -41,13 +41,17 @@ try {
 }
 `;
 
-    execFile("powershell", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psScript], (error) => {
-      if (error) {
-        console.warn("[notify:windows] Failed to display toast or play audio:", error.message);
-        resolve(false);
-      } else {
-        resolve(true);
-      }
-    });
+    execFile(
+      "powershell",
+      ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", psScript],
+      (error) => {
+        if (error) {
+          console.warn("[notify:windows] Failed to display toast or play audio:", error.message);
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      },
+    );
   });
 }

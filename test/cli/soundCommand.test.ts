@@ -3,7 +3,12 @@ import { mkdtempSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { createSoundCommand } from "../../src/cli/commands/sound.js";
-import { loadConfig, saveConfig, getDefaultConfig, type AplConfig } from "../../src/cli/configManager.js";
+import {
+  loadConfig,
+  saveConfig,
+  getDefaultConfig,
+  type AplConfig,
+} from "../../src/cli/configManager.js";
 import * as soundManager from "../../src/notify/soundManager.js";
 
 describe("CLI Sound Command (defcon sound)", () => {

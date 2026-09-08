@@ -20,7 +20,7 @@ export interface AplConfig {
   adapters: {
     "claude-code": boolean;
     "gemini-cli": boolean;
-    "antigravity": boolean;
+    antigravity: boolean;
     [key: string]: boolean;
   };
   notifications: {
@@ -63,8 +63,8 @@ export function getDefaultConfig(): AplConfig {
     adapters: {
       "claude-code": true,
       "gemini-cli": true,
-      "antigravity": true,
-      "kiro": true,
+      antigravity: true,
+      kiro: true,
     },
     notifications: {
       enabled: true,
@@ -99,7 +99,9 @@ export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
       ? Math.floor(parsedWhitelistTimeout)
       : defaults.whitelistSafetyTimeoutSeconds;
 
-  const parsedRepeatInterval = Number(raw["repeatAlertIntervalSeconds"] ?? rawStall["repeatAlertIntervalSeconds"]);
+  const parsedRepeatInterval = Number(
+    raw["repeatAlertIntervalSeconds"] ?? rawStall["repeatAlertIntervalSeconds"],
+  );
   const repeatAlertIntervalSeconds =
     !isNaN(parsedRepeatInterval) && parsedRepeatInterval > 0
       ? Math.floor(parsedRepeatInterval)
@@ -114,21 +116,47 @@ export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
   const rawNotifications = (raw["notifications"] as Record<string, unknown>) || {};
   const rawCustomSounds = (rawNotifications["customSounds"] as Record<string, unknown>) || {};
   const customSounds: Partial<Record<SoundTier, string>> = {};
-  for (const tier of ["low", "medium", "high", "stall", "stall-level-1", "stall-level-2", "stall-level-3"] as const) {
+  for (const tier of [
+    "low",
+    "medium",
+    "high",
+    "stall",
+    "stall-level-1",
+    "stall-level-2",
+    "stall-level-3",
+  ] as const) {
     if (typeof rawCustomSounds[tier] === "string" && rawCustomSounds[tier]) {
       customSounds[tier] = rawCustomSounds[tier] as string;
     }
   }
 
   const notifications: AplConfig["notifications"] = {
-    enabled: typeof rawNotifications["enabled"] === "boolean" ? rawNotifications["enabled"] : defaults.notifications.enabled,
-    customSoundPath: typeof rawNotifications["customSoundPath"] === "string" ? rawNotifications["customSoundPath"] : undefined,
+    enabled:
+      typeof rawNotifications["enabled"] === "boolean"
+        ? rawNotifications["enabled"]
+        : defaults.notifications.enabled,
+    customSoundPath:
+      typeof rawNotifications["customSoundPath"] === "string"
+        ? rawNotifications["customSoundPath"]
+        : undefined,
     customSounds: Object.keys(customSounds).length > 0 ? customSounds : undefined,
-    builtInSound: typeof rawNotifications["builtInSound"] === "string" ? rawNotifications["builtInSound"] : defaults.notifications.builtInSound,
+    builtInSound:
+      typeof rawNotifications["builtInSound"] === "string"
+        ? rawNotifications["builtInSound"]
+        : defaults.notifications.builtInSound,
     sounds: {
-      low: typeof (rawNotifications["sounds"] as any)?.low === "string" ? (rawNotifications["sounds"] as any).low : defaults.notifications.sounds.low,
-      medium: typeof (rawNotifications["sounds"] as any)?.medium === "string" ? (rawNotifications["sounds"] as any).medium : defaults.notifications.sounds.medium,
-      high: typeof (rawNotifications["sounds"] as any)?.high === "string" ? (rawNotifications["sounds"] as any).high : defaults.notifications.sounds.high,
+      low:
+        typeof (rawNotifications["sounds"] as any)?.low === "string"
+          ? (rawNotifications["sounds"] as any).low
+          : defaults.notifications.sounds.low,
+      medium:
+        typeof (rawNotifications["sounds"] as any)?.medium === "string"
+          ? (rawNotifications["sounds"] as any).medium
+          : defaults.notifications.sounds.medium,
+      high:
+        typeof (rawNotifications["sounds"] as any)?.high === "string"
+          ? (rawNotifications["sounds"] as any).high
+          : defaults.notifications.sounds.high,
     },
   };
 
@@ -144,23 +172,38 @@ export function sanitizeConfig(raw: Record<string, unknown>): AplConfig {
   const rawPolicies = (raw["policies"] as Record<string, unknown>) || {};
   const validPolicyActions = ["auto-approve", "notify-only", "notify-and-confirm", "block"];
   const policies = {
-    low: (typeof rawPolicies["low"] === "string" && validPolicyActions.includes(rawPolicies["low"] as string))
-      ? rawPolicies["low"] as PolicyConfig["policies"]["low"]
-      : defaults.policies.low,
-    medium: (typeof rawPolicies["medium"] === "string" && validPolicyActions.includes(rawPolicies["medium"] as string))
-      ? rawPolicies["medium"] as PolicyConfig["policies"]["medium"]
-      : defaults.policies.medium,
-    high: (typeof rawPolicies["high"] === "string" && validPolicyActions.includes(rawPolicies["high"] as string))
-      ? rawPolicies["high"] as PolicyConfig["policies"]["high"]
-      : defaults.policies.high,
+    low:
+      typeof rawPolicies["low"] === "string" &&
+      validPolicyActions.includes(rawPolicies["low"] as string)
+        ? (rawPolicies["low"] as PolicyConfig["policies"]["low"])
+        : defaults.policies.low,
+    medium:
+      typeof rawPolicies["medium"] === "string" &&
+      validPolicyActions.includes(rawPolicies["medium"] as string)
+        ? (rawPolicies["medium"] as PolicyConfig["policies"]["medium"])
+        : defaults.policies.medium,
+    high:
+      typeof rawPolicies["high"] === "string" &&
+      validPolicyActions.includes(rawPolicies["high"] as string)
+        ? (rawPolicies["high"] as PolicyConfig["policies"]["high"])
+        : defaults.policies.high,
   };
 
   // Parse adapters (only accept known keys with boolean values)
   const rawAdapters = (raw["adapters"] as Record<string, unknown>) || {};
   const adapters: AplConfig["adapters"] = {
-    "claude-code": typeof rawAdapters["claude-code"] === "boolean" ? rawAdapters["claude-code"] : defaults.adapters["claude-code"],
-    "gemini-cli": typeof rawAdapters["gemini-cli"] === "boolean" ? rawAdapters["gemini-cli"] : defaults.adapters["gemini-cli"],
-    "antigravity": typeof rawAdapters["antigravity"] === "boolean" ? rawAdapters["antigravity"] : defaults.adapters["antigravity"],
+    "claude-code":
+      typeof rawAdapters["claude-code"] === "boolean"
+        ? rawAdapters["claude-code"]
+        : defaults.adapters["claude-code"],
+    "gemini-cli":
+      typeof rawAdapters["gemini-cli"] === "boolean"
+        ? rawAdapters["gemini-cli"]
+        : defaults.adapters["gemini-cli"],
+    antigravity:
+      typeof rawAdapters["antigravity"] === "boolean"
+        ? rawAdapters["antigravity"]
+        : defaults.adapters["antigravity"],
   };
 
   // Parse inboxPath

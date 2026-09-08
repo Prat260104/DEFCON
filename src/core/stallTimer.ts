@@ -11,7 +11,11 @@ export interface StallTimerOptions {
   /** Maximum number of recurring repeat alerts to fire after the initial alert. Default: 3. */
   maxRepeatAlerts?: number;
   /** Custom callback when stall alert fires. */
-  onStallAlert?: (event: AgentEvent, elapsedMs: number, escalationLevel?: number) => void | Promise<void>;
+  onStallAlert?: (
+    event: AgentEvent,
+    elapsedMs: number,
+    escalationLevel?: number,
+  ) => void | Promise<void>;
 }
 
 /**
@@ -40,14 +44,18 @@ export class StallAlertTimer {
   private whitelistSafetyTimeoutMs: number;
   private repeatAlertIntervalMs: number;
   private maxRepeatAlerts: number;
-  private onStallAlert?: (event: AgentEvent, elapsedMs: number, escalationLevel?: number) => void | Promise<void>;
+  private onStallAlert?: (
+    event: AgentEvent,
+    elapsedMs: number,
+    escalationLevel?: number,
+  ) => void | Promise<void>;
   private activeTimers = new Map<string, ActiveTimerEntry>();
 
   constructor(options: StallTimerOptions = {}) {
-    this.defaultTimeoutMs = Math.max(1, (options.stallAlertSeconds ?? 35)) * 1000;
-    this.whitelistSafetyTimeoutMs = Math.max(1, (options.whitelistSafetyTimeoutSeconds ?? 75)) * 1000;
-    this.repeatAlertIntervalMs = Math.max(1, (options.repeatAlertIntervalSeconds ?? 60)) * 1000;
-    this.maxRepeatAlerts = Math.max(0, (options.maxRepeatAlerts ?? 3));
+    this.defaultTimeoutMs = Math.max(1, options.stallAlertSeconds ?? 35) * 1000;
+    this.whitelistSafetyTimeoutMs = Math.max(1, options.whitelistSafetyTimeoutSeconds ?? 75) * 1000;
+    this.repeatAlertIntervalMs = Math.max(1, options.repeatAlertIntervalSeconds ?? 60) * 1000;
+    this.maxRepeatAlerts = Math.max(0, options.maxRepeatAlerts ?? 3);
     this.onStallAlert = options.onStallAlert;
   }
 

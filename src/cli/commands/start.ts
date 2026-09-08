@@ -6,7 +6,8 @@ import { GeminiCliAdapter } from "../../adapters/geminiCli.js";
 import { AntigravityAdapter } from "../../adapters/antigravityTranscript.js";
 import { KiroAdapter } from "../../adapters/kiro.js";
 import { SqliteEventStore } from "../../storage/sqliteStore.js";
-import { notify } from "../../notify/index.js";
+import { appendFileSync, existsSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { loadConfig, getDefaultInboxPath } from "../configManager.js";
 
 export function createStartCommand(): Command {
@@ -39,9 +40,13 @@ export function createStartCommand(): Command {
           const escSuffix = escalationLevel > 1 ? ` (Escalation ${escalationLevel})` : "";
 
           if (isDrift) {
-            console.log(`\n  ⚠️ [WHITELIST DRIFT ALERT${escSuffix}] Agent waiting ${stallSec}s on whitelisted command (${event.command})! Your whitelist or IDE auto-approve settings may have changed.`);
+            console.log(
+              `\n  ⚠️ [WHITELIST DRIFT ALERT${escSuffix}] Agent waiting ${stallSec}s on whitelisted command (${event.command})! Your whitelist or IDE auto-approve settings may have changed.`,
+            );
           } else {
-            console.log(`\n  🔊 [STALL ALERT${escSuffix}] Agent has been blocked for ${stallSec}s! Firing alarm...`);
+            console.log(
+              `\n  🔊 [STALL ALERT${escSuffix}] Agent has been blocked for ${stallSec}s! Firing alarm...`,
+            );
           }
         },
       });
@@ -54,6 +59,17 @@ export function createStartCommand(): Command {
           console.warn("[storage] Failed to save event to audit DB:", err);
         }
 
+        // Relay event to central inbox for IDE status bar & external observers
+        try {
+          const dir = dirname(inboxPath);
+          if (!existsSync(dir)) {
+            mkdirSync(dir, { recursive: true });
+          }
+          appendFileSync(inboxPath, JSON.stringify(event) + "\n", "utf-8");
+        } catch (err) {
+          console.warn("[daemon] Failed to relay event to inbox:", err);
+        }
+
         const timestamp = new Date(event.timestamp).toLocaleTimeString();
         const riskBadge =
           event.riskLevel === "high"
@@ -62,7 +78,9 @@ export function createStartCommand(): Command {
               ? "🟡 [MED]"
               : "🟢 [LOW]";
 
-        console.log(`  [${timestamp}] ${riskBadge} ${event.agent} | ${event.type}: ${event.command ?? "(no command)"}`);
+        console.log(
+          `  [${timestamp}] ${riskBadge} ${event.agent} | ${event.type}: ${event.command ?? "(no command)"}`,
+        );
 
         if (config.notifications.enabled) {
           stallTimer.handleEvent(event);

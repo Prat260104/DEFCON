@@ -54,7 +54,8 @@ describe("formatNotification", () => {
   });
 
   it("truncates very long commands with ellipsis", () => {
-    const longCommand = "curl https://example.com/very/long/path/with/lots/of/parameters/and/tokens/that/exceeds/the/standard/notification/length/limit/and/more/tokens/and/arguments.sh";
+    const longCommand =
+      "curl https://example.com/very/long/path/with/lots/of/parameters/and/tokens/that/exceeds/the/standard/notification/length/limit/and/more/tokens/and/arguments.sh";
     const event: AgentEvent = {
       agent: "claude-code",
       type: "working",

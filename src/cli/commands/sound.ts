@@ -1,6 +1,5 @@
 import { Command } from "commander";
 import { existsSync } from "node:fs";
-import { join } from "node:path";
 import {
   loadConfig,
   saveConfig,
@@ -29,7 +28,9 @@ export function createSoundCommand(): Command {
   // defcon sound list
   cmd
     .command("list")
-    .description("List built-in alert sounds, imported custom sound assets, and active sound profiles")
+    .description(
+      "List built-in alert sounds, imported custom sound assets, and active sound profiles",
+    )
     .action(() => {
       const config = loadConfig();
       const { builtIn, custom } = listSoundAssets();
@@ -41,20 +42,32 @@ export function createSoundCommand(): Command {
       console.log("Active Sound Configuration:");
       console.log("---------------------------");
       console.log(`Global Custom Sound : ${config.notifications.customSoundPath || "(none)"}`);
-      console.log(`Stall Alert Sound   : ${config.notifications.customSounds?.stall || "(default: Sosumi)"}`);
-      console.log(`Low Risk Sound      : ${config.notifications.customSounds?.low || config.notifications.sounds.low || DEFAULT_RISK_SOUND_MAP.low}`);
-      console.log(`Medium Risk Sound   : ${config.notifications.customSounds?.medium || config.notifications.sounds.medium || DEFAULT_RISK_SOUND_MAP.medium}`);
-      console.log(`High Risk Sound     : ${config.notifications.customSounds?.high || config.notifications.sounds.high || DEFAULT_RISK_SOUND_MAP.high}`);
+      console.log(
+        `Stall Alert Sound   : ${config.notifications.customSounds?.stall || "(default: Sosumi)"}`,
+      );
+      console.log(
+        `Low Risk Sound      : ${config.notifications.customSounds?.low || config.notifications.sounds.low || DEFAULT_RISK_SOUND_MAP.low}`,
+      );
+      console.log(
+        `Medium Risk Sound   : ${config.notifications.customSounds?.medium || config.notifications.sounds.medium || DEFAULT_RISK_SOUND_MAP.medium}`,
+      );
+      console.log(
+        `High Risk Sound     : ${config.notifications.customSounds?.high || config.notifications.sounds.high || DEFAULT_RISK_SOUND_MAP.high}`,
+      );
       console.log("");
 
       console.log(`Custom Assets in ${getDefaultSoundsDir()}:`);
       console.log("-----------------------------------------");
       if (custom.length === 0) {
-        console.log("  (No custom audio assets imported yet. Use `defcon sound import <file>` to add one.)");
+        console.log(
+          "  (No custom audio assets imported yet. Use `defcon sound import <file>` to add one.)",
+        );
       } else {
         for (const item of custom) {
           const sizeKb = (item.sizeBytes / 1024).toFixed(1);
-          console.log(`  • ${item.name.padEnd(20)} [${item.extension.toUpperCase()}] (${sizeKb} KB) -> ${item.path}`);
+          console.log(
+            `  • ${item.name.padEnd(20)} [${item.extension.toUpperCase()}] (${sizeKb} KB) -> ${item.path}`,
+          );
         }
       }
       console.log("");
@@ -111,7 +124,9 @@ export function createSoundCommand(): Command {
   // defcon sound set-tier <tier> <soundNameOrPath>
   cmd
     .command("set-tier <tier> <sound>")
-    .description("Assign a custom sound asset or built-in system sound to a risk tier (low, medium, high, stall)")
+    .description(
+      "Assign a custom sound asset or built-in system sound to a risk tier (low, medium, high, stall)",
+    )
     .action((tierInput: string, soundInput: string) => {
       const tier = tierInput.toLowerCase() as SoundTier;
       if (!VALID_TIERS.includes(tier)) {
@@ -130,13 +145,15 @@ export function createSoundCommand(): Command {
       const matchedAsset = custom.find(
         (c) =>
           c.name.toLowerCase() === soundInput.toLowerCase() ||
-          c.filename.toLowerCase() === soundInput.toLowerCase()
+          c.filename.toLowerCase() === soundInput.toLowerCase(),
       );
 
       if (matchedAsset) {
         config.notifications.customSounds[tier] = matchedAsset.path;
         saveConfig(config, configPath);
-        console.log(`✅ Set ${tier.toUpperCase()} risk sound to custom asset "${matchedAsset.name}" (${matchedAsset.path}).`);
+        console.log(
+          `✅ Set ${tier.toUpperCase()} risk sound to custom asset "${matchedAsset.name}" (${matchedAsset.path}).`,
+        );
         return;
       }
 
@@ -155,7 +172,7 @@ export function createSoundCommand(): Command {
 
       // Check if sound is a built-in macOS sound
       const matchedBuiltIn = BUILT_IN_MACOS_SOUNDS.find(
-        (b) => b.toLowerCase() === soundInput.toLowerCase()
+        (b) => b.toLowerCase() === soundInput.toLowerCase(),
       );
 
       if (matchedBuiltIn) {
@@ -166,11 +183,15 @@ export function createSoundCommand(): Command {
           delete config.notifications.customSounds[tier];
         }
         saveConfig(config, configPath);
-        console.log(`✅ Set ${tier.toUpperCase()} risk sound to built-in sound "${matchedBuiltIn}".`);
+        console.log(
+          `✅ Set ${tier.toUpperCase()} risk sound to built-in sound "${matchedBuiltIn}".`,
+        );
         return;
       }
 
-      console.error(`❌ Could not resolve sound "${soundInput}". Must be a built-in sound name, imported asset name, or valid audio file path.`);
+      console.error(
+        `❌ Could not resolve sound "${soundInput}". Must be a built-in sound name, imported asset name, or valid audio file path.`,
+      );
       process.exit(1);
     });
 
@@ -192,13 +213,15 @@ export function createSoundCommand(): Command {
         const matched = custom.find(
           (c) =>
             c.name.toLowerCase() === options.name!.toLowerCase() ||
-            c.filename.toLowerCase() === options.name!.toLowerCase()
+            c.filename.toLowerCase() === options.name!.toLowerCase(),
         );
         targetSound = matched ? matched.path : options.name;
       } else if (options.tier) {
         const tier = options.tier.toLowerCase() as SoundTier;
         if (!VALID_TIERS.includes(tier)) {
-          console.error(`❌ Invalid tier "${options.tier}". Valid tiers: ${VALID_TIERS.join(", ")}`);
+          console.error(
+            `❌ Invalid tier "${options.tier}". Valid tiers: ${VALID_TIERS.join(", ")}`,
+          );
           process.exit(1);
         }
         if (config.notifications.customSounds?.[tier]) {
@@ -206,7 +229,9 @@ export function createSoundCommand(): Command {
         } else if (tier === "stall") {
           targetSound = "Sosumi";
         } else {
-          targetSound = config.notifications.sounds[tier as RiskLevel] || DEFAULT_RISK_SOUND_MAP[tier as RiskLevel];
+          targetSound =
+            config.notifications.sounds[tier as RiskLevel] ||
+            DEFAULT_RISK_SOUND_MAP[tier as RiskLevel];
         }
       } else if (config.notifications.customSoundPath) {
         targetSound = config.notifications.customSoundPath;
@@ -233,14 +258,17 @@ export function createSoundCommand(): Command {
       if (options.tier) {
         const tier = options.tier.toLowerCase() as SoundTier;
         if (!VALID_TIERS.includes(tier)) {
-          console.error(`❌ Invalid tier "${options.tier}". Valid tiers: ${VALID_TIERS.join(", ")}`);
+          console.error(
+            `❌ Invalid tier "${options.tier}". Valid tiers: ${VALID_TIERS.join(", ")}`,
+          );
           process.exit(1);
         }
         if (config.notifications.customSounds && config.notifications.customSounds[tier]) {
           delete config.notifications.customSounds[tier];
         }
         if (tier !== "stall") {
-          config.notifications.sounds[tier as RiskLevel] = DEFAULT_RISK_SOUND_MAP[tier as RiskLevel];
+          config.notifications.sounds[tier as RiskLevel] =
+            DEFAULT_RISK_SOUND_MAP[tier as RiskLevel];
         }
         saveConfig(config, configPath);
         console.log(`✅ Reset sound profile for ${tier.toUpperCase()} tier to default.`);
@@ -274,7 +302,10 @@ export function createSoundCommand(): Command {
       const config = loadConfig(configPath);
       let modified = false;
 
-      if (config.notifications.customSoundPath && config.notifications.customSoundPath.includes(soundName)) {
+      if (
+        config.notifications.customSoundPath &&
+        config.notifications.customSoundPath.includes(soundName)
+      ) {
         config.notifications.customSoundPath = undefined;
         modified = true;
       }

@@ -10,17 +10,11 @@ describe("APL / Defcon Zero-Config Setup Wizard", () => {
   let tempDir: string;
   let claudeSettingsPath: string;
   let cursorMcpPath: string;
-  let geminiHooksPath: string;
-  let antigravityMcpPath: string;
-  let claudeDesktopMcpPath: string;
 
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), "apl-setup-test-"));
     claudeSettingsPath = join(tempDir, "claude-settings.json");
     cursorMcpPath = join(tempDir, "cursor-mcp.json");
-    geminiHooksPath = join(tempDir, "gemini-hooks.json");
-    antigravityMcpPath = join(tempDir, "antigravity-mcp.json");
-    claudeDesktopMcpPath = join(tempDir, "claude-desktop-mcp.json");
   });
 
   afterEach(() => {
@@ -154,10 +148,7 @@ describe("APL / Defcon Zero-Config Setup Wizard", () => {
 
   describe("End-to-End Wizard Engine Execution", () => {
     it("runs dry-run without writing any files", async () => {
-      writeFileSync(
-        claudeSettingsPath,
-        JSON.stringify({ apiKey: "secret" }, null, 2),
-      );
+      writeFileSync(claudeSettingsPath, JSON.stringify({ apiKey: "secret" }, null, 2));
 
       const results = await runSetup({
         dryRun: true,
@@ -178,10 +169,7 @@ describe("APL / Defcon Zero-Config Setup Wizard", () => {
     });
 
     it("executes setup for real, creates backups, preserves existing config, and is idempotent", async () => {
-      writeFileSync(
-        claudeSettingsPath,
-        JSON.stringify({ userTheme: "nord", hooks: {} }, null, 2),
-      );
+      writeFileSync(claudeSettingsPath, JSON.stringify({ userTheme: "nord", hooks: {} }, null, 2));
       writeFileSync(
         cursorMcpPath,
         JSON.stringify({ mcpServers: { customTool: { command: "custom" } } }, null, 2),

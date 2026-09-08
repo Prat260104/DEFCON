@@ -17,7 +17,9 @@ const binName = process.argv[1]?.endsWith("defcon") ? "defcon" : "apl";
 
 program
   .name(binName)
-  .description("Agent Permission Layer — Local-first risk classifier & notification daemon for coding agents")
+  .description(
+    "Agent Permission Layer — Local-first risk classifier & notification daemon for coding agents",
+  )
   .version("0.1.0");
 
 program.addCommand(createSetupCommand());
