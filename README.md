@@ -15,13 +15,13 @@ APL / DEFCON is a **universal "agent is stuck, come back" alarm** with intellige
 
 ## Core Features
 
-- ⏱️ **Stall-Aware Alert Timer** — Does **not** annoy you if you approve within seconds. Escalates with a loud alarm only if the agent has been blocked for 30–40s (default: 35s, configurable).
-- 🛡️ **Whitelist Safety-Net (75s)** — Whitelisted / auto-approved commands bypass the fast timer. If a whitelisted command is still unresolved after 75s (due to IDE permission changes or config drift), APL alerts you with a drift warning.
-- 🔊 **Custom Sound Profiles & Asset Manager** — Replace default system sounds (`Sosumi`, `Ping`, `Pop`) with any custom `.mp3`, `.wav`, `.aiff`, or `.ogg` audio track. Assign distinct audio cues for `low`, `medium`, `high`, and `stall` alerts. Cross-platform native playback via macOS (`afplay`), Windows (PowerShell `SoundPlayer`), and Linux (`paplay`/`pw-play`/`aplay`).
-- 🏷️ **Deterministic Risk Classification** — Sub-millisecond deterministic risk tagging (`low` / `medium` / `high`) added as secondary context to alert notifications (`"Agent waiting 35s — 🔴 HIGH RISK: rm -rf"`).
-- 🤖 **Universal Agent Support** — Works across CLI agents (Claude Code, Gemini CLI) via lifecycle hooks, and Chat-GUI IDEs (Antigravity, Kiro) via real-time session transcript streaming and MCP tools.
-- 🚫 **Active Blacklist Gating** — Intercepts and blocks catastrophic commands (`rm -rf /`, `mkfs.`, `git push --force origin main`, fork bombs) before execution.
-- 🔒 **Local-First & Private** — Zero cloud dependencies, zero external API calls. Audit history stored in local SQLite (`~/.apl/events.db`).
+-  **Stall-Aware Alert Timer** — Does **not** annoy you if you approve within seconds. Escalates with a loud alarm only if the agent has been blocked for 30–40s (default: 35s, configurable).
+-  **Whitelist Safety-Net (75s)** — Whitelisted / auto-approved commands bypass the fast timer. If a whitelisted command is still unresolved after 75s (due to IDE permission changes or config drift), APL alerts you with a drift warning.
+-  **Custom Sound Profiles & Asset Manager** — Replace default system sounds (`Sosumi`, `Ping`, `Pop`) with any custom `.mp3`, `.wav`, `.aiff`, or `.ogg` audio track. Assign distinct audio cues for `low`, `medium`, `high`, and `stall` alerts. Cross-platform native playback via macOS (`afplay`), Windows (PowerShell `SoundPlayer`), and Linux (`paplay`/`pw-play`/`aplay`).
+-  **Deterministic Risk Classification** — Sub-millisecond deterministic risk tagging (`low` / `medium` / `high`) added as secondary context to alert notifications (`"Agent waiting 35s — 🔴 HIGH RISK: rm -rf"`).
+-  **Universal Agent Support** — Works across CLI agents (Claude Code, Gemini CLI) via lifecycle hooks, and Chat-GUI IDEs (Antigravity, Kiro) via real-time session transcript streaming and MCP tools.
+-  **Active Blacklist Gating** — Intercepts and blocks catastrophic commands (`rm -rf /`, `mkfs.`, `git push --force origin main`, fork bombs) before execution.
+-  **Local-First & Private** — Zero cloud dependencies, zero external API calls. Audit history stored in local SQLite (`~/.apl/events.db`).
 
 ---
 
