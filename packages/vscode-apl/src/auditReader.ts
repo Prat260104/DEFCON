@@ -19,6 +19,31 @@ export function getDefaultDbPath(): string {
  * Safely read recent lines from ~/.apl/inbox.jsonl (or custom path).
  * Never throws — returns empty array if file is missing or inaccessible.
  */
+/**
+ * Normalize raw Antigravity hook payloads (written by `cat >> inbox.jsonl`)
+ * into the canonical AgentEvent format. These payloads have `hook_event_name`
+ * and `tool_input` fields instead of `agent`, `type`, `command`, etc.
+ */
+function normalizeRawHookPayload(parsed: Record<string, unknown>): AgentEvent | null {
+  if (typeof parsed["hook_event_name"] === "string" || typeof parsed["tool_name"] === "string") {
+    const toolInput = (parsed["tool_input"] ?? {}) as Record<string, unknown>;
+    const command =
+      (toolInput["command"] as string) ||
+      (toolInput["CommandLine"] as string) ||
+      `tool:${parsed["tool_name"] || "unknown"}`;
+
+    return {
+      agent: "antigravity",
+      type: parsed["hook_event_name"] === "Notification" ? "completed" : "permission_required",
+      command,
+      riskLevel: "medium",
+      timestamp: (parsed["timestamp"] as number) || Date.now(),
+      sessionId: parsed["conversationId"] as string | undefined,
+    };
+  }
+  return null;
+}
+
 export function readRecentInboxEvents(
   filePath: string = getDefaultInboxPath(),
   limit: number = 50
@@ -36,8 +61,18 @@ export function readRecentInboxEvents(
     for (const line of recentLines) {
       try {
         const parsed = JSON.parse(line);
-        if (parsed && typeof parsed === "object" && typeof parsed.agent === "string") {
+        if (!parsed || typeof parsed !== "object") continue;
+
+        // Standard AgentEvent format
+        if (typeof parsed.agent === "string") {
           events.push(parsed as AgentEvent);
+          continue;
+        }
+
+        // Raw hook payload format (from `cat >> inbox.jsonl` hooks)
+        const normalized = normalizeRawHookPayload(parsed as Record<string, unknown>);
+        if (normalized) {
+          events.push(normalized);
         }
       } catch {
         // Skip malformed lines safely
@@ -58,7 +93,7 @@ export function readRecentInboxEvents(
  */
 export function getActivePendingEvent(
   events: AgentEvent[],
-  maxAgeMs: number = 3 * 60 * 1000
+  maxAgeMs: number = 10 * 60 * 1000
 ): AgentEvent | null {
   if (events.length === 0) return null;
 

@@ -55,6 +55,7 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
 | **Antigravity `.agents/hooks.json`** | IDE Chat GUI | ❌ **Non-Viable** | 🚫 **Confirmed Inactive** | Empirical test confirmed Antigravity Chat GUI mode does not execute `.agents/hooks.json`. |
 | **VS Code Extension & Cline Target (10A)** | IDE Status Bar / MCP | ✅ **Built** | 🔒 **Verified** | Live VS Code status bar transitions, real-time file watcher, command palette, and Cline MCP config merging verified on real hardware. |
 | **Recurring Stall & Acoustic Escalation (11D)** | Audio / Core Engine | ✅ **Built** | 🔒 **Verified** | Recurring stall reminders, escalation sequence (Pop/Ping → Sosumi → Basso), custom stall sound preservation, and auto-cancellation verified. |
+| **Desktop System Tray Companion (11A–11C)** | Desktop Menu Bar / Tauri v2 | ✅ **Built** | 🔒 **Verified** | Native 2.4MB Rust companion, auto-spawned with `defcon start`, live WebSocket loopback sync, 3-state icon (idle/medium/high), and safe quit handshake. |
 
 ---
 
@@ -110,10 +111,10 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
   └── 10C: JetBrains / WebStorm Plugin architecture
                            │
                            ▼
-[ NEXT PRIORITY 3 — Phase 11A–11C: Desktop System Tray Companion ] 📋
-  ├── 11A: Minimal Native Tray UI (Tauri v2 / Rust + Webview, ~8MB)
+[ Phase 11A–11C: Desktop System Tray Companion ] ✅ SHIPPED & VERIFIED
+  ├── 11A: Ultra-compact Native Tray UI (Tauri v2 / Rust, 2.4MB binary, zero-config)
   ├── 11B: Local Loopback WebSocket Transport (ws://127.0.0.1:48123)
-  └── 11C: Real-time Event Feed, Status Badges & Quick Policy Toggle Controls
+  └── 11C: Real-time Event Feed, 3-State Dynamic Icons (Idle/Medium/High) & Quit Handshake
                            │
                            ▼
 [ NEXT PRIORITY 4 — Phase 12: Project-Aware Context Engine ] 📋
@@ -323,7 +324,7 @@ Add detection and safe MCP JSON merge for:
 
 ---
 
-## Phase 11 Detail: Desktop Menu Bar / System Tray Companion (Planned — Not Started)
+## Phase 11 Detail: Desktop Menu Bar / System Tray Companion (Completed & Verified)
 
 ### 1. The Goal
 Provide developers with a lightweight, persistent status indicator in the macOS menu bar / Windows taskbar that displays the live state of the daemon, real-time alerts, and a quick dropdown table of recent audit history.

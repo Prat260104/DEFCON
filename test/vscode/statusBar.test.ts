@@ -156,7 +156,7 @@ describe("VS Code Extension (Phase 10A) — Status Bar & Audit Reader", () => {
     });
 
     it("returns null if permission_required is older than maxAgeMs timeout", () => {
-      const oldTimestamp = Date.now() - 5 * 60 * 1000; // 5 minutes ago
+      const oldTimestamp = Date.now() - 15 * 60 * 1000; // 15 minutes ago (exceeds 10-min default)
       const events: AgentEvent[] = [
         {
           agent: "gemini-cli",
@@ -167,7 +167,7 @@ describe("VS Code Extension (Phase 10A) — Status Bar & Audit Reader", () => {
         },
       ];
 
-      const pending = getActivePendingEvent(events, 3 * 60 * 1000);
+      const pending = getActivePendingEvent(events, 10 * 60 * 1000);
       expect(pending).toBeNull();
     });
 
@@ -202,6 +202,56 @@ describe("VS Code Extension (Phase 10A) — Status Bar & Audit Reader", () => {
     it("returns false for nonexistent paths", () => {
       const active = isDaemonActive(join(tempDir, "nonexistent-inbox.jsonl"));
       expect(typeof active).toBe("boolean");
+    });
+  });
+
+  describe("Raw Antigravity hook payload normalization", () => {
+    it("normalizes raw hook payloads (cat >> inbox.jsonl format) into AgentEvent format", () => {
+      const rawPayload = JSON.stringify({
+        hook_event_name: "PreToolUse",
+        tool_name: "Bash",
+        tool_input: { command: "rm -rf /test-directory" },
+      });
+      const normalPayload = JSON.stringify({
+        agent: "claude-code",
+        type: "permission_required",
+        command: "git status",
+        riskLevel: "low",
+        timestamp: Date.now(),
+      });
+
+      writeFileSync(testInboxPath, `${rawPayload}\n${normalPayload}\n`, "utf-8");
+
+      const events = readRecentInboxEvents(testInboxPath, 10);
+      expect(events.length).toBe(2);
+      // Newest first (normalPayload is last line)
+      expect(events[0].agent).toBe("claude-code");
+      expect(events[0].command).toBe("git status");
+      // Raw payload gets normalized
+      expect(events[1].agent).toBe("antigravity");
+      expect(events[1].type).toBe("permission_required");
+      expect(events[1].command).toBe("rm -rf /test-directory");
+    });
+
+    it("normalizes Notification hook events as completed type", () => {
+      const rawPayload = JSON.stringify({
+        hook_event_name: "Notification",
+        tool_name: "Bash",
+        tool_input: { command: "npm install express" },
+      });
+
+      writeFileSync(testInboxPath, `${rawPayload}\n`, "utf-8");
+      const events = readRecentInboxEvents(testInboxPath, 10);
+      expect(events.length).toBe(1);
+      expect(events[0].type).toBe("completed");
+      expect(events[0].agent).toBe("antigravity");
+    });
+
+    it("ignores lines that are neither AgentEvent nor raw hook format", () => {
+      const garbage = JSON.stringify({ randomField: "value", count: 42 });
+      writeFileSync(testInboxPath, `${garbage}\n`, "utf-8");
+      const events = readRecentInboxEvents(testInboxPath, 10);
+      expect(events.length).toBe(0);
     });
   });
 });

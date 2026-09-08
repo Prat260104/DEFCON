@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-cli/schema.json",
+  "productName": "defcon-tray",
+  "version": "0.1.0",
+  "identifier": "com.defcon.tray",
+  "build": {
+    "frontendDist": null
+  },
+  "app": {
+    "windows": []
+  },
+  "bundle": {
+    "active": false,
+    "icon": [
+      "icons/tray-idle.png"
+    ]
+  }
+}

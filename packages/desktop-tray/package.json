@@ -1,0 +1,10 @@
+{
+  "name": "defcon-tray",
+  "version": "0.1.0",
+  "description": "Native macOS/Windows/Linux system tray companion for DEFCON",
+  "private": true,
+  "scripts": {
+    "build": "cargo build --release --manifest-path src-tauri/Cargo.toml",
+    "build:debug": "cargo build --manifest-path src-tauri/Cargo.toml"
+  }
+}
