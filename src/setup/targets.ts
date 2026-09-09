@@ -570,6 +570,109 @@ export const TARGET_DEFINITIONS: Record<SetupTargetId, TargetDefinition> = {
       return { updated: root, changed: true };
     },
   },
+
+  codex: {
+    id: "codex",
+    name: "OpenAI Codex",
+    kind: "hook",
+    description: "OpenAI Codex CLI lifecycle hooks for automated permission interception",
+    manualStepNote: "hooks installed into ~/.codex/hooks.json, active immediately",
+    detect: (customPath?: string) => {
+      if (customPath) return existsSync(customPath);
+      const codexHome = join(homedir(), ".codex");
+      const appBinary = "/Applications/ChatGPT.app/Contents/Resources/codex";
+      return existsSync(codexHome) || existsSync(appBinary);
+    },
+    getDefaultConfigPath: () => join(homedir(), ".codex", "hooks.json"),
+    mergeConfig: (existing = {}) => {
+      const root = typeof existing === "object" && existing !== null ? { ...existing } : {};
+      const hooks = typeof root.hooks === "object" && root.hooks !== null ? { ...root.hooks } : {};
+      root.hooks = hooks;
+
+      const preToolUse: any[] = Array.isArray(hooks.PreToolUse) ? [...hooks.PreToolUse] : [];
+      const permissionRequest: any[] = Array.isArray(hooks.PermissionRequest)
+        ? [...hooks.PermissionRequest]
+        : [];
+      const postToolUse: any[] = Array.isArray(hooks.PostToolUse) ? [...hooks.PostToolUse] : [];
+
+      const hasPreToolUse = preToolUse.some(isAplHook);
+      const hasPermissionRequest = permissionRequest.some(isAplHook);
+      const hasPostToolUse = postToolUse.some(isAplHook);
+
+      if (hasPreToolUse && hasPermissionRequest && hasPostToolUse) {
+        return { updated: root, changed: false, alreadyConfigured: true };
+      }
+
+      if (!hasPreToolUse) {
+        preToolUse.push({
+          matcher: ".*",
+          hooks: [{ type: "command", command: APL_HOOK_COMMAND }],
+        });
+      }
+
+      if (!hasPermissionRequest) {
+        permissionRequest.push({
+          matcher: ".*",
+          hooks: [{ type: "command", command: APL_HOOK_COMMAND }],
+        });
+      }
+
+      if (!hasPostToolUse) {
+        postToolUse.push({
+          matcher: ".*",
+          hooks: [{ type: "command", command: APL_HOOK_COMMAND }],
+        });
+      }
+
+      hooks.PreToolUse = preToolUse;
+      hooks.PermissionRequest = permissionRequest;
+      hooks.PostToolUse = postToolUse;
+      root.hooks = hooks;
+
+      return { updated: root, changed: true, alreadyConfigured: false };
+    },
+    undoConfig: (existing = {}) => {
+      if (typeof existing !== "object" || existing === null) {
+        return { updated: existing, changed: false };
+      }
+      const root = { ...existing };
+      if (!root.hooks || typeof root.hooks !== "object") {
+        return { updated: root, changed: false };
+      }
+
+      const hooks = { ...root.hooks };
+      let changed = false;
+
+      if (Array.isArray(hooks.PreToolUse)) {
+        const originalLen = hooks.PreToolUse.length;
+        hooks.PreToolUse = hooks.PreToolUse.filter((item: any) => !isAplHook(item));
+        if (hooks.PreToolUse.length !== originalLen) changed = true;
+        if (hooks.PreToolUse.length === 0) delete hooks.PreToolUse;
+      }
+
+      if (Array.isArray(hooks.PermissionRequest)) {
+        const originalLen = hooks.PermissionRequest.length;
+        hooks.PermissionRequest = hooks.PermissionRequest.filter((item: any) => !isAplHook(item));
+        if (hooks.PermissionRequest.length !== originalLen) changed = true;
+        if (hooks.PermissionRequest.length === 0) delete hooks.PermissionRequest;
+      }
+
+      if (Array.isArray(hooks.PostToolUse)) {
+        const originalLen = hooks.PostToolUse.length;
+        hooks.PostToolUse = hooks.PostToolUse.filter((item: any) => !isAplHook(item));
+        if (hooks.PostToolUse.length !== originalLen) changed = true;
+        if (hooks.PostToolUse.length === 0) delete hooks.PostToolUse;
+      }
+
+      if (Object.keys(hooks).length === 0) {
+        delete root.hooks;
+      } else {
+        root.hooks = hooks;
+      }
+
+      return { updated: root, changed };
+    },
+  },
 };
 
 export function getClineDefaultConfigPath(): string {

@@ -5,6 +5,7 @@ import { ClaudeCodeAdapter } from "../../adapters/claudeCode.js";
 import { GeminiCliAdapter } from "../../adapters/geminiCli.js";
 import { AntigravityAdapter } from "../../adapters/antigravityTranscript.js";
 import { KiroAdapter } from "../../adapters/kiro.js";
+import { CodexAdapter } from "../../adapters/codex.js";
 import { SqliteEventStore } from "../../storage/sqliteStore.js";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
@@ -217,6 +218,14 @@ export function createStartCommand(): Command {
         await kiroAdapter.start();
         adapters.push(kiroAdapter);
         console.log("  ✅ Watching Kiro IDE events...");
+      }
+
+      if (config.adapters["codex"] !== false) {
+        const codexAdapter = new CodexAdapter(inboxPath);
+        codexAdapter.onEvent((event) => eventBus.emit(event));
+        await codexAdapter.start();
+        adapters.push(codexAdapter);
+        console.log("  ✅ Watching OpenAI Codex events...");
       }
 
       // Graceful shutdown handling

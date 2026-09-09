@@ -175,6 +175,7 @@ The `defcon setup` command automatically detects installed coding assistants on 
 | ----------------------- | -------------- | -------------------------- | --------------------------------------------------------------------------------- |
 | Claude Code             | Terminal CLI   | Deterministic Interception | Native `PreToolUse` and `Notification` hooks with session correlation             |
 | Gemini CLI              | Terminal CLI   | Deterministic Interception | Native `BeforeTool` shell execution hook                                          |
+| OpenAI Codex CLI        | Terminal CLI   | Deterministic Interception | Native `PreToolUse` and `PermissionRequest` hooks via `~/.codex/hooks.json`       |
 | Kiro IDE                | Chat GUI IDE   | Real-Time Stream Observer  | Live session transcript monitoring (`~/.kiro/sessions/**/messages.jsonl`)         |
 | Antigravity IDE         | Chat GUI IDE   | Real-Time Stream Observer  | Transcript stream watcher (`~/.gemini/antigravity-ide/brain/**/transcript.jsonl`) |
 | VS Code (`vscode-apl`)  | IDE Status Bar | Live Status Monitor        | File-relay stream observer with 10-minute sliding TTL                             |
@@ -344,6 +345,35 @@ Claude Code integration hooks into the native configuration file (`~/.claude/set
 
 Configured via `gemini-cli-hooks.json` in the active project or user home directory, capturing `BeforeTool` events directly into the central relay inbox.
 
+#### OpenAI Codex CLI
+
+Configured via `~/.codex/hooks.json` using native lifecycle hook execution streaming directly into the central relay inbox:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [{ "type": "command", "command": "cat >> ~/.apl/inbox.jsonl" }]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": ".*",
+        "hooks": [{ "type": "command", "command": "cat >> ~/.apl/inbox.jsonl" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [{ "type": "command", "command": "cat >> ~/.apl/inbox.jsonl" }]
+      }
+    ]
+  }
+}
+```
+
 ### GUI and IDE Assistants
 
 #### Kiro IDE
@@ -427,7 +457,7 @@ Refer to [FUTURE_PLANS.md](FUTURE_PLANS.md) for detailed technical specification
 - **CLI Audit Log Viewer (`defcon audit`):** Direct terminal querying of SQLite audit store with filtering (`--risk`, `--since`) and structured JSON/CSV export.
 - **OWASP Agentic Security Mapping:** Formal alignment document (`SECURITY.md`) mapping DEFCON controls to the OWASP Top 10 for Agentic Applications.
 - **Session Risk Analytics (`defcon report`):** Post-session activity reporting summarizing total interceptions, stall durations, and risk tier distributions.
-- **Extended IDE & Agent Support:** Windsurf IDE MCP verification and OpenAI Codex CLI adapter.
+- **Extended IDE & Agent Support:** Windsurf IDE MCP verification.
 
 ---
 

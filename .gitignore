@@ -49,6 +49,7 @@ coverage/
 .cursor/
 .gemini/
 .kiro/
+.codex/
 *.bak
 *.swp
 *.swo

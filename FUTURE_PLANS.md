@@ -13,13 +13,12 @@ The following table lists all planned features in priority order, ranked by impa
 | 1 | GitHub Actions CI/CD Pipeline | Infrastructure | 2 hours | Planned |
 | 2 | Risk Classification Benchmark Harness | Quality Assurance | 3-4 hours | Planned |
 | 3 | CLI Audit Log Viewer (`defcon audit`) | Core CLI | 2-3 hours | Planned |
-| 4 | OWASP Agentic Security Mapping (`SECURITY.md`) | Documentation | 1-2 hours | Planned |
-| 5 | Session Risk Analytics Report (`defcon report`) | Core CLI | 2-3 hours | Planned |
+| 4 | Session Risk Analytics Report (`defcon report`) | Core CLI | 2-3 hours | Planned |
+| 5 | OWASP Agentic Security Mapping (`SECURITY.md`) | Documentation | 1-2 hours | Planned |
 | 6 | Terminal Demo Recording (asciinema / GIF) | Documentation | 1 hour | Planned |
 | 7 | Windsurf IDE MCP Verification | IDE Expansion | 3-4 hours | Planned |
-| 8 | OpenAI Codex CLI Adapter | IDE Expansion | 4-6 hours | Planned |
-| 9 | JetBrains / WebStorm Plugin Architecture | IDE Expansion | Large | Deferred |
-| 10 | Centralized Enterprise Governance | Enterprise | Large | Deferred |
+| 8 | JetBrains / WebStorm Plugin Architecture | IDE Expansion | Large | Deferred |
+| 9 | Centralized Enterprise Governance | Enterprise | Large | Deferred |
 
 ---
 
@@ -201,29 +200,15 @@ Blacklist blocks:              0
 
 ---
 
-### 8. OpenAI Codex CLI Adapter
-
-**Goal:** Extend agent coverage to OpenAI Codex CLI sessions.
-
-**Implementation:**
-- New adapter at `src/adapters/codex.ts`.
-- Ingest Codex tool execution events from experimental hook paths into canonical `permission_required` / `completed` events on the EventBus.
-- Register adapter in `src/cli/commands/start.ts` alongside existing adapters.
-
-**Verification Requirement:**
-> Run a live OpenAI Codex CLI session, trigger a non-whitelisted shell tool execution, ignore the approval dialog, and confirm the 35-second audio/visual alarm fires.
-
----
-
 ## Phase: Deferred (Low Priority)
 
 The following items are documented for completeness but are not prioritized for near-term implementation.
 
-### 9. JetBrains / WebStorm Plugin Architecture
+### 8. JetBrains / WebStorm Plugin Architecture
 
 Architecture blueprint for JetBrains AI Assistant execution hook interception. Would provide status bar risk indicators connected to the daemon event bus. Deferred until JetBrains AI Assistant matures its plugin extensibility API.
 
-### 10. Centralized Enterprise Governance
+### 9. Centralized Enterprise Governance
 
 Enterprise-scale features including GitOps central policy synchronization (corporate blacklists/whitelists via HTTPS) and OpenTelemetry/Syslog audit log forwarding for SOC compliance. Deferred until the project has sufficient adoption to warrant multi-tenant governance.
 

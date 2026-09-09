@@ -65,6 +65,7 @@ export function getDefaultConfig(): AplConfig {
       "gemini-cli": true,
       antigravity: true,
       kiro: true,
+      codex: true,
     },
     notifications: {
       enabled: true,

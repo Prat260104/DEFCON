@@ -57,6 +57,18 @@ export function parseClaudeCodePayload(line: string): ClaudeCodePayload | null {
     // Must have hook_event_name to be a valid Claude Code payload
     if (typeof obj["hook_event_name"] !== "string") return null;
 
+    // Exclude Codex payloads (contain turn_id, transcript_path, model, or Codex-specific hook names)
+    if (
+      obj["agent"] === "codex" ||
+      "turn_id" in obj ||
+      "transcript_path" in obj ||
+      "model" in obj ||
+      obj["hook_event_name"] === "PermissionRequest" ||
+      obj["hook_event_name"] === "PostToolUse"
+    ) {
+      return null;
+    }
+
     return obj as unknown as ClaudeCodePayload;
   } catch {
     return null;
