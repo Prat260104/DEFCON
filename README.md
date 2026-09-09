@@ -420,11 +420,14 @@ DEFCON is engineered around strict local-first security guarantees:
 
 ## Roadmap
 
-Refer to [FUTURE_PLANS.md](FUTURE_PLANS.md) for detailed technical specifications and status trackers for future engineering phases:
+Refer to [FUTURE_PLANS.md](FUTURE_PLANS.md) for detailed technical specifications, architecture blueprints, and priority rankings:
 
-- **Phase 12:** Project-Aware Context Engine (local manifest inspection, branch-dependent risk adjustment).
-- **Phase 13:** Agentic Intelligence Layer (offline statistical anomaly scoring and optional local LLM intent explanation via Ollama).
-- **Phase 14:** Centralized Governance (GitOps enterprise policy synchronization and syslog forwarders).
+- **CI/CD Quality Gates:** GitHub Actions automated pipeline enforcing typecheck, linting, and full 25-suite Vitest test runs on every PR/push.
+- **Risk Classification Benchmark Harness:** Quantitative precision/recall measurement against labeled command datasets to establish empirical accuracy baselines.
+- **CLI Audit Log Viewer (`defcon audit`):** Direct terminal querying of SQLite audit store with filtering (`--risk`, `--since`) and structured JSON/CSV export.
+- **OWASP Agentic Security Mapping:** Formal alignment document (`SECURITY.md`) mapping DEFCON controls to the OWASP Top 10 for Agentic Applications.
+- **Session Risk Analytics (`defcon report`):** Post-session activity reporting summarizing total interceptions, stall durations, and risk tier distributions.
+- **Extended IDE & Agent Support:** Windsurf IDE MCP verification and OpenAI Codex CLI adapter.
 
 ---
 
