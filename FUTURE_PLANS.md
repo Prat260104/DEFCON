@@ -4,7 +4,7 @@
 
 ---
 
-## 🌟 The Core Vision: Universal Dual-Layer Architecture
+## The Core Vision: Universal Dual-Layer Architecture
 
 The primary goal of APL is to provide a reliable, local-first safety net for autonomous coding agents — protecting developers across both **Terminal CLI Agents** and **GUI / IDE Chat Assistants** through a single unified engine.
 
@@ -40,7 +40,7 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
 
 ---
 
-## 🗺️ Current Verification Status & Implementation Matrix
+## Current Verification Status and Implementation Matrix
 
 | Component / Adapter | Environment | Implementation State | Verification Level | Evidence & Notes |
 |---|---|---|---|---|
@@ -59,79 +59,79 @@ The primary goal of APL is to provide a reliable, local-first safety net for aut
 
 ---
 
-## 🗺️ Roadmap Progression
+## Roadmap Progression
 
 ```
-[ Phases 1–7: Core Local-First Engine ] ✅ SHIPPED & VERIFIED
-  ├── Canonical Event Bus & Sliding-Window Deduplication
-  ├── Deterministic Risk Engine (sub-millisecond p99, no LLM in decision path)
-  ├── Terminal Adapters (Claude Code & Gemini CLI)
-  ├── Cross-Platform Multi-Sensory Dispatchers (macOS afplay verified; Win/Linux mocked)
-  ├── Native SQLite Audit Persistence (node:sqlite)
-  └── Active Approval Policies & Catastrophic Regex Blacklist
-                           │
-                           ▼
-[ Phase 8: Universal MCP Server Proxy & Antigravity Stream Observer ] ✅ SHIPPED & VERIFIED
-  ├── Model Context Protocol (MCP) Server (dist/mcp/index.js) — Tested via subprocess client
-  ├── Real-time Antigravity Transcript Observer (AntigravityAdapter) — Human end-to-end verified
-  ├── Multi-Session Concurrency Isolation & Whitelist Safety-Net (75s Drift Guard) — Verified
-  └── Deterministic Blacklist Hard Gating (Aborts catastrophic commands without prompting) — Verified
-                           │
-                           ▼
-[ Phase 9: Zero-Config Setup Wizard (`defcon setup`) ] ✅ SHIPPED & VERIFIED
-  ├── Auto-detection of installed agent configs (~/.claude, ~/.cursor, Windsurf, Cline, etc.)
-  ├── Safe non-destructive JSON merge with automatic .bak backup
-  ├── Idempotent execution & clean rollback (--undo / --dry-run)
-  └── Guaranteed vs. Cooperative detection status reporting
-                           │
-                           ▼
-[ Phase 10E & 11E: Foundation Additions ] ✅ SHIPPED & VERIFIED
-  ├── 10E: Kiro IDE Dual-Mode Adapter (Live session watcher ~/.kiro/sessions/**/messages.jsonl)
-  └── 11E: Custom Audio Asset Manager (`defcon sound import/list/play/set-tier`, ~/.apl/sounds/)
-                           │
-                           ▼
-[ Phase 11D: Recurring Stall Reminders & Multi-Tier Acoustic Escalation ] ✅ SHIPPED & VERIFIED
-  ├── Configurable snooze reminder loop (Alert 1 @ 35s → Alert 2 @ +60s → Alert 3 @ +120s)
-  ├── Tiered acoustic escalation (Pop/Ping → Sosumi → Basso / Custom stall sound)
-  ├── Instant silent cancellation on developer interaction / completion
-  └── CLI configuration flags & configManager validation
-                           │
-                           ▼
-[ Phase 10A: VS Code Extension & Cline MCP Target ] ✅ SHIPPED & VERIFIED
-  ├── VS Code Extension package (`packages/vscode-apl/`) with dynamic status bar risk indicators
-  ├── Real-time file watcher & polling fallback on `~/.apl/inbox.jsonl`
-  ├── Centralized daemon inbox relay mirroring all live agent events
-  ├── 4 VS Code command palette actions (Check Status, Audit Logs, Open Config, Test Alert)
-  └── Cline MCP target detection & non-destructive merge in `defcon setup`
-                           │
-                           ▼
-[ NEXT PRIORITY 1 — Phase 10: Remaining IDE Expansion (Windsurf & Codex) ] 🎯 NEXT UP
-  ├── 10D: Windsurf IDE Live Session & MCP Verification
-  ├── 10B: OpenAI Codex CLI Adapter (src/adapters/codex.ts experimental path)
-  └── 10C: JetBrains / WebStorm Plugin architecture
-                           │
-                           ▼
-[ Phase 11A–11C: Desktop System Tray Companion ] ✅ SHIPPED & VERIFIED
-  ├── 11A: Ultra-compact Native Tray UI (Tauri v2 / Rust, 2.4MB binary, zero-config)
-  ├── 11B: Local Loopback WebSocket Transport (ws://127.0.0.1:48123)
-  └── 11C: Real-time Event Feed, 3-State Dynamic Icons (Idle/Medium/High) & Quit Handshake
-                           │
-                           ▼
-[ NEXT PRIORITY 4 — Phase 12: Project-Aware Context Engine ] 📋
-  ├── Local Manifest & Git Branch Inspection (package.json, Dockerfile, main vs feature branch)
-  └── Dynamic Contextual Risk Tuning
-                           │
-                           ▼
-[ NEXT PRIORITY 5 — Phase 13: Agentic-AI Intelligence Layer ] 📋
-  ├── 13C: Ground-Truth Risk-Classification Evaluation Benchmark Harness (300-500 test set)
-  ├── 13A: Behavioral Anomaly Scoring (EWMA/z-score on session command bursts)
-  ├── 13B: Local LLM Command-Intent Explainer (Ollama Llama 3.2 1B / Phi-3, strictly async/non-authoritative)
-  └── 13D: Session Risk Post-Run Analytics Report
-                           │
-                           ▼
-[ NEXT PRIORITY 6 — Phase 14: Centralized Team & Enterprise Governance ] 📋
-  ├── GitOps Central Policy Sync (Corporate Blacklists/Whitelists via HTTPS)
-  └── OpenTelemetry & Syslog Audit Log Forwarding for Enterprise SOC Compliance
+[ Phases 1-7: Core Local-First Engine ] ............................ SHIPPED AND VERIFIED
+  |-- Canonical Event Bus and Sliding-Window Deduplication
+  |-- Deterministic Risk Engine (sub-millisecond p99, no LLM in decision path)
+  |-- Terminal Adapters (Claude Code and Gemini CLI)
+  |-- Cross-Platform Multi-Sensory Dispatchers (macOS afplay verified; Win/Linux mocked)
+  |-- Native SQLite Audit Persistence (node:sqlite)
+  +-- Active Approval Policies and Catastrophic Regex Blacklist
+                           |
+                           v
+[ Phase 8: Universal MCP Server Proxy and Antigravity Observer ] ... SHIPPED AND VERIFIED
+  |-- Model Context Protocol (MCP) Server (dist/mcp/index.js) -- Tested via subprocess client
+  |-- Real-time Antigravity Transcript Observer (AntigravityAdapter) -- Human end-to-end verified
+  |-- Multi-Session Concurrency Isolation and Whitelist Safety-Net (75s Drift Guard) -- Verified
+  +-- Deterministic Blacklist Hard Gating (Aborts catastrophic commands without prompting) -- Verified
+                           |
+                           v
+[ Phase 9: Zero-Config Setup Wizard (defcon setup) ] .............. SHIPPED AND VERIFIED
+  |-- Auto-detection of installed agent configs (~/.claude, ~/.cursor, Windsurf, Cline, etc.)
+  |-- Safe non-destructive JSON merge with automatic .bak backup
+  |-- Idempotent execution and clean rollback (--undo / --dry-run)
+  +-- Guaranteed vs. Cooperative detection status reporting
+                           |
+                           v
+[ Phase 10E and 11E: Foundation Additions ] ....................... SHIPPED AND VERIFIED
+  |-- 10E: Kiro IDE Dual-Mode Adapter (Live session watcher ~/.kiro/sessions/**/messages.jsonl)
+  +-- 11E: Custom Audio Asset Manager (defcon sound import/list/play/set-tier, ~/.apl/sounds/)
+                           |
+                           v
+[ Phase 11D: Recurring Stall Reminders and Acoustic Escalation ] .. SHIPPED AND VERIFIED
+  |-- Configurable snooze reminder loop (Alert 1 @ 35s, Alert 2 @ +60s, Alert 3 @ +120s)
+  |-- Tiered acoustic escalation (Pop/Ping -> Sosumi -> Basso / Custom stall sound)
+  |-- Instant silent cancellation on developer interaction / completion
+  +-- CLI configuration flags and configManager validation
+                           |
+                           v
+[ Phase 10A: VS Code Extension and Cline MCP Target ] ............ SHIPPED AND VERIFIED
+  |-- VS Code Extension package (packages/vscode-apl/) with dynamic status bar risk indicators
+  |-- Real-time file watcher and polling fallback on ~/.apl/inbox.jsonl
+  |-- Centralized daemon inbox relay mirroring all live agent events
+  |-- 4 VS Code command palette actions (Check Status, Audit Logs, Open Config, Test Alert)
+  +-- Cline MCP target detection and non-destructive merge in defcon setup
+                           |
+                           v
+[ Phase 11A-11C: Desktop System Tray Companion ] .................. SHIPPED AND VERIFIED
+  |-- 11A: Ultra-compact Native Tray UI (Tauri v2 / Rust, 2.4MB binary, zero-config)
+  |-- 11B: Local Loopback WebSocket Transport (ws://127.0.0.1:48123)
+  +-- 11C: Real-time Event Feed, 3-State Dynamic Icons (Idle/Medium/High) and Quit Handshake
+                           |
+                           v
+[ NEXT -- Phase 10 Remaining: IDE Expansion (Windsurf, Codex) ] ... PLANNED
+  |-- 10D: Windsurf IDE Live Session and MCP Verification
+  |-- 10B: OpenAI Codex CLI Adapter (src/adapters/codex.ts experimental path)
+  +-- 10C: JetBrains / WebStorm Plugin architecture
+                           |
+                           v
+[ Phase 12: Project-Aware Context Engine ] ........................ PLANNED
+  |-- Local Manifest and Git Branch Inspection (package.json, Dockerfile, main vs feature branch)
+  +-- Dynamic Contextual Risk Tuning
+                           |
+                           v
+[ Phase 13: Agentic-AI Intelligence Layer ] ....................... PLANNED
+  |-- 13C: Ground-Truth Risk-Classification Evaluation Benchmark Harness (300-500 test set)
+  |-- 13A: Behavioral Anomaly Scoring (EWMA/z-score on session command bursts)
+  |-- 13B: Local LLM Command-Intent Explainer (Ollama Llama 3.2 1B / Phi-3, strictly async/non-authoritative)
+  +-- 13D: Session Risk Post-Run Analytics Report
+                           |
+                           v
+[ Phase 14: Centralized Team and Enterprise Governance ] .......... PLANNED
+  |-- GitOps Central Policy Sync (Corporate Blacklists/Whitelists via HTTPS)
+  +-- OpenTelemetry and Syslog Audit Log Forwarding for Enterprise SOC Compliance
 ```
 
 ---
@@ -172,7 +172,7 @@ We build `src/mcp/index.ts` exporting an official **MCP Server** that wraps shel
 - **VS Code** (Cline / Roo Code / GitHub Copilot MCP)
 - **Claude Desktop** (`claude_desktop_config.json`)
 
-### 4. ⏱️ Unattended Idle Re-Nudge & Escalation (20–30s Timeout)
+### 4. Unattended Idle Re-Nudge and Escalation (20-30s Timeout)
 When a developer starts an autonomous agent task and switches tabs or steps away for coffee:
 - **Stall Timer:** If an agent remains in `permission_required` state for $>25\text{ seconds}$ without user response:
 - **Audio Pulse Re-Nudge:** APL triggers a repeated gentle audio pulse to remind the developer that the agent is stalled.
@@ -181,7 +181,7 @@ When a developer starts an autonomous agent task and switches tabs or steps away
 
 ---
 
-## ⭐️ PRIORITY — Phase 9 Detail: Zero-Config Setup Wizard (`defcon setup`)
+## Phase 9 Detail: Zero-Config Setup Wizard (defcon setup)
 
 > **Why this comes before new IDE adapters (Kiro, VS Code, etc.):** Right now,
 > every integration that already works (Claude Code, Gemini CLI, Antigravity,
@@ -280,47 +280,44 @@ the same standard already applied to the Antigravity end-to-end test.
 
 ---
 
-## Phase 10 Detail: Additional IDE & Editor Extensions (Planned — Not Started)
+## Phase 10 Detail: Additional IDE and Editor Extensions
 
-### 1. Scope & Ecosystem Reach
+### 1. Scope and Ecosystem Reach
 Expand APL's multi-agent reach across additional popular AI developer tools and IDE ecosystems:
-- **10A — VS Code Extension (`vscode-apl` / Cline & Continue MCP):** A dedicated VS Code extension package (`packages/vscode-apl/`) with status bar risk indicators, alongside Cline/Continue MCP target detection in `defcon setup`.
-- **10B — OpenAI Codex CLI Adapter:** `src/adapters/codex.ts` supporting Codex CLI tool execution hook format and relay ingestion.
-- **10C — JetBrains / WebStorm Plugin:** Architecture blueprint for JetBrains AI Assistant execution hook interception.
-- **10D — Windsurf IDE (Codeium) MCP Support:** Auto-detection, zero-config MCP merging, and test verification for Windsurf IDE (`~/.codeium/windsurf/mcp_config.json`).
-- **10E — Kiro IDE Adapter & Hook Configuration:** Support for Kiro's `.kiro/hooks/*.json` hook configuration and tool interception pipeline.
 
-### 2. Component Specifications
+| Sub-Phase | Target | Status |
+|---|---|---|
+| 10A | VS Code Extension and Cline MCP Target | SHIPPED AND VERIFIED |
+| 10E | Kiro IDE Dual-Mode Adapter and Hook Configuration | SHIPPED AND VERIFIED |
+| 10B | OpenAI Codex CLI Adapter | Planned |
+| 10C | JetBrains / WebStorm Plugin Architecture | Planned |
+| 10D | Windsurf IDE (Codeium) MCP Verification | Planned |
 
-#### A. Windsurf IDE & Cline Setup Targets (10D & 10A Setup)
+### 2. Remaining Component Specifications
+
+#### A. Windsurf IDE MCP Verification (10D)
 Add detection and safe MCP JSON merge for:
 - **Windsurf IDE:** `~/.codeium/windsurf/mcp_config.json`
-- **Cline (VS Code):** `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` (and Linux/Windows equivalents)
 - **Target Definitions:** Extend `src/setup/types.ts` and `src/setup/targets.ts` with cross-platform config paths and non-destructive `mcpServers.agent-permission-layer` merge/undo logic.
+- **Verification:** Run `defcon setup`, launch real Windsurf IDE, and witness permission enforcement and stall alert through MCP-gated tool execution.
 
 #### B. OpenAI Codex CLI Adapter (10B)
 - **Adapter Location:** `src/adapters/codex.ts`
-- **Mechanism:** Ingest and parse Codex tool execution events from experimental hook paths into Canonical `permission_required` / `completed` events on the EventBus.
+- **Mechanism:** Ingest and parse Codex tool execution events from experimental hook paths into canonical `permission_required` / `completed` events on the EventBus.
 - **Integration:** Registered in `src/cli/commands/start.ts` alongside existing adapters.
 
-#### C. VS Code Extension Blueprint (10A)
-- **Package Location:** `packages/vscode-apl/`
-- **Mechanism:** Lightweight status bar item (`🛡️ APL: Active`) reflecting daemon status and real-time risk levels, connecting to daemon events or audit stores.
+#### C. JetBrains / WebStorm Plugin Architecture (10C)
+- Architecture blueprint for JetBrains AI Assistant execution hook interception.
+- Plugin would provide status bar risk indicators and connect to the daemon event bus for real-time risk classification.
 
-#### D. Kiro IDE Adapter & Setup Target (10E)
-- **Adapter Location:** `src/adapters/kiro.ts`
-- **Hook Config Target:** `.kiro/hooks/*.json`
-- **Mechanism:** Intercept tool execution payloads per Kiro's hook schema and relay permission states to the canonical EventBus.
-
-### 3. Verification & Acceptance Requirement
+### 3. Verification and Acceptance Requirement
 > [!IMPORTANT]
 > **Strict Verification Standard:** In accordance with the verification standards applied to the Antigravity transcript observer and setup wizard, synthetic inbox payload injection (`cat >> ~/.apl/inbox.jsonl`) or simulated subprocess tests are **NOT** sufficient to mark Phase 10 items as "Verified" in the Verification Matrix.
 >
-> When Phase 10 is implemented (following completion of prior pending verification gates), the following real human-witnessed verifications on actual hardware are mandatory prior to upgrading status:
-> 1. **Codex Adapter (10B):** Run a live, native OpenAI Codex CLI session, trigger a non-whitelisted shell tool execution, ignore the dialog, and personally confirm the 35s audio/visual alarm fires.
+> The following real human-witnessed verifications on actual hardware are mandatory prior to upgrading status:
+> 1. **Codex Adapter (10B):** Run a live, native OpenAI Codex CLI session, trigger a non-whitelisted shell tool execution, ignore the dialog, and personally confirm the 35-second audio/visual alarm fires.
 > 2. **Windsurf MCP Target (10D):** Run `defcon setup`, launch real Windsurf IDE, have Cascade/agent invoke an MCP-gated tool execution, and witness permission enforcement and stall alert.
-> 3. **VS Code Extension (10A):** Launch a real VS Code instance with the extension installed, run an autonomous agent session (Cline / Copilot / Continue), and verify the live status bar risk badge updates dynamically alongside OS alerts.
-> 4. **Kiro IDE (10E):** Run a live Kiro IDE session with `.kiro/hooks` configured, trigger an unapproved agent command, and verify stall detection and alert dispatch on real hardware.
+> 3. **JetBrains Plugin (10C):** Launch a real JetBrains IDE instance with the plugin installed, run an AI Assistant session, and verify live risk classification feedback.
 
 ---
 
