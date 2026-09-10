@@ -10,7 +10,7 @@ The following table lists all planned features in priority order, ranked by impa
 
 | Priority | Feature | Phase | Effort | Status |
 |---|---|---|---|---|
-| 1 | GitHub Actions CI/CD Pipeline | Infrastructure | 2 hours | Planned |
+| 1 | GitHub Actions CI/CD Pipeline | Infrastructure | 2 hours | **Shipped** (Multi-version matrix, 339 tests, Benchmark gate) |
 | 2 | Risk Classification Benchmark Harness | Quality Assurance | 3-4 hours | **Shipped** (100% F1, 100% Recall) |
 | 3 | CLI Audit Log Viewer (`defcon audit`) | Core CLI | 2-3 hours | Planned |
 | 4 | Session Risk Analytics Report (`defcon report`) | Core CLI | 2-3 hours | Planned |
@@ -24,32 +24,22 @@ The following table lists all planned features in priority order, ranked by impa
 
 ## Phase: Infrastructure and Quality
 
-### 1. GitHub Actions CI/CD Pipeline
+### 1. GitHub Actions CI/CD Pipeline (Shipped)
 
 **Goal:** Automated quality gates on every push and pull request.
 
-**Pipeline Stages:**
+**Status:** Completed in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml).
 
-```yaml
-# .github/workflows/ci.yml
-on: [push, pull_request]
-
-jobs:
-  quality:
-    runs-on: ubuntu-latest
-    steps:
-      - npm install
-      - npm run typecheck    # TypeScript strict mode verification
-      - npm run lint         # ESLint rule enforcement
-      - npm run test         # Vitest unit and integration suite (28 test files)
-```
-
-**Deliverables:**
-- `.github/workflows/ci.yml` workflow definition.
-- README badge showing pipeline status.
-- Branch protection rule recommendation (require passing CI before merge).
-
-**Why this matters:** Every production-quality open-source project has CI. A green badge on the repository landing page is the first signal of engineering discipline that reviewers and recruiters look for.
+**Pipeline Capabilities:**
+- Multi-version matrix running on Node.js 20.x and 22.x on `ubuntu-latest`.
+- Automated code style and formatting gate (`npm run format:check`).
+- Static code analysis (`npm run lint`).
+- Strict TypeScript verification (`npm run typecheck`).
+- Production build validation (`npm run build`).
+- Full Vitest test suite execution across all 28 test files and 339 tests (`npm test`).
+- Empirical Benchmark & Regression Gate execution (`npm run benchmark`).
+- Automated concurrency grouping to cancel stale intermediate workflow runs on fast pushes.
+- Real-time status shields embedded in [`README.md`](./README.md).
 
 ---
 
