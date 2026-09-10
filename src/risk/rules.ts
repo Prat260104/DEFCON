@@ -21,18 +21,43 @@ export interface RiskRule {
 }
 
 export const RULES: RiskRule[] = [
-  // ─── High Risk: Destructive / Elevated / Untrusted (Evaluated First) ────
+  // ─── Safe Overrides (Evaluated First — prevent false positives) ─────────
+  // Echo/printf just printing strings are low-risk, unless piped/redirected
+  // into something executable. Only matches simple echo/printf with no
+  // operators (;, &&, ||, |, >) following the quoted/unquoted argument.
+  // Note: content of piped-to-file scripts (e.g. echo "rm -rf /" > script.sh && bash script.sh)
+  // cannot be statically inspected without filesystem reads; this relies on classify() routing
+  // to high-risk notify-and-confirm rather than hard-block for indirect script execution.
+  {
+    pattern: /^(?:echo|printf)\s+(?:['"].*['"]|\S+)\s*$/,
+    level: "low",
+    label: "read-only shell",
+  },
+
+  // ─── High Risk: Destructive / Elevated / Untrusted (Evaluated Next) ────
   {
     pattern: /rm\s+(-[a-zA-Z]*r[a-zA-Z]*f|--recursive|--force)\b/,
     level: "high",
     label: "recursive delete",
   },
   { pattern: /rm\s+-[a-zA-Z]*f[a-zA-Z]*r\b/, level: "high", label: "recursive delete" },
+  // Separated flags: rm -r -f or rm -f -r (as separate arguments)
+  {
+    pattern: /rm\s+(?:-[a-zA-Z]*\s+)*-[a-zA-Z]*r[a-zA-Z]*\s+(?:-[a-zA-Z]*\s+)*-[a-zA-Z]*f/,
+    level: "high",
+    label: "recursive delete",
+  },
+  {
+    pattern: /rm\s+(?:-[a-zA-Z]*\s+)*-[a-zA-Z]*f[a-zA-Z]*\s+(?:-[a-zA-Z]*\s+)*-[a-zA-Z]*r/,
+    level: "high",
+    label: "recursive delete",
+  },
   { pattern: /^git\s+reset\s+--hard\b/, level: "high", label: "hard reset" },
-  { pattern: /^git\s+push\s+.*--force/, level: "high", label: "force push" },
+  { pattern: /^git\s+push\s+.*(?:--force|-f)/, level: "high", label: "force push" },
   { pattern: /^git\s+clean\s+-[a-zA-Z]*f/, level: "high", label: "git clean force" },
   { pattern: /curl.*\|\s*(sh|bash|zsh)/, level: "high", label: "pipe-to-shell" },
   { pattern: /wget.*\|\s*(sh|bash|zsh)/, level: "high", label: "pipe-to-shell" },
+  { pattern: /\|\s*(?:sh|bash|zsh)\b/, level: "high", label: "pipe-to-shell" },
   { pattern: /^sudo\b/, level: "high", label: "elevated privileges" },
   { pattern: /:\s*\(\)\s*\{.*\}\s*;\s*:/, level: "high", label: "fork bomb pattern" },
   { pattern: /^chmod\s+(-R\s+)?777\b/, level: "high", label: "permissive chmod" },

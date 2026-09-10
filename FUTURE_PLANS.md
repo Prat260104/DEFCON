@@ -11,7 +11,7 @@ The following table lists all planned features in priority order, ranked by impa
 | Priority | Feature | Phase | Effort | Status |
 |---|---|---|---|---|
 | 1 | GitHub Actions CI/CD Pipeline | Infrastructure | 2 hours | Planned |
-| 2 | Risk Classification Benchmark Harness | Quality Assurance | 3-4 hours | Planned |
+| 2 | Risk Classification Benchmark Harness | Quality Assurance | 3-4 hours | **Shipped** (100% F1, 100% Recall) |
 | 3 | CLI Audit Log Viewer (`defcon audit`) | Core CLI | 2-3 hours | Planned |
 | 4 | Session Risk Analytics Report (`defcon report`) | Core CLI | 2-3 hours | Planned |
 | 5 | OWASP Agentic Security Mapping (`SECURITY.md`) | Documentation | 1-2 hours | Planned |
@@ -41,7 +41,7 @@ jobs:
       - npm install
       - npm run typecheck    # TypeScript strict mode verification
       - npm run lint         # ESLint rule enforcement
-      - npm run test         # Vitest unit and integration suite (25 test files)
+      - npm run test         # Vitest unit and integration suite (28 test files)
 ```
 
 **Deliverables:**
@@ -53,44 +53,24 @@ jobs:
 
 ---
 
-### 2. Risk Classification Benchmark Harness
+### 2. Risk Classification Benchmark Harness (Shipped)
 
 **Goal:** Measure and report the accuracy of the deterministic risk engine against a labeled ground-truth dataset.
 
-**Implementation:**
+**Status:** Completed and documented in [BENCHMARK.md](./BENCHMARK.md).
 
-- Create `test/benchmark/commands.json` containing 300-500 commands with human-assigned risk labels spanning all four tiers (low, medium, high, blacklist).
-- Build `scripts/benchmark-accuracy.ts` that runs the existing `classify()` function against every entry and computes precision, recall, and F1 score per risk tier.
-- Output a structured report suitable for inclusion in documentation.
+**Delivered Capabilities:**
+- Ground-truth dataset (`test/benchmark/dataset.json`) with 267 curated real-world agent shell commands across 3 risk tiers + catastrophic blacklist patterns.
+- High-resolution benchmark evaluation script (`scripts/benchmark-accuracy.ts`) reporting per-tier Precision, Recall, F1-Score, and sub-microsecond latency. Supports CLI tables, `--json`, and `--markdown`.
+- Automated regression gate test (`test/benchmark/benchmark.test.ts`) with hard zero-false-negative safety invariant and ≥ 98% weighted F1 requirement.
 
-**Example dataset entries:**
-
-```json
-[
-  { "command": "ls -la", "expected": "low" },
-  { "command": "npm install express", "expected": "medium" },
-  { "command": "rm -rf /", "expected": "high" },
-  { "command": ":(){ :|:& };:", "expected": "high" }
-]
+**Measured Results:**
 ```
-
-**Example output:**
-
+Dataset: 267 labeled commands
+Weighted Macro-F1: 100.0%  |  Accuracy: 100.0%
+Blacklist Recall: 100.0% (32/32 catastrophic commands, 0 false negatives)
+Median Evaluation Latency (p50): 1.54 µs (0.0015 ms)
 ```
-Risk Engine Accuracy Report
----------------------------
-Tier       Precision   Recall   F1       Count
-low        96.2%       93.8%    95.0%    120
-medium     91.5%       89.3%    90.4%    140
-high       97.1%       95.6%    96.3%    100
-blacklist  100.0%      100.0%   100.0%   40
----------------------------
-Overall weighted F1: 94.2%
-```
-
-**Why this matters:** Quantitative accuracy metrics on the core classification engine demonstrate measurement-driven engineering. This is a unique differentiator -- very few developer tool projects include empirical accuracy baselines.
-
-**Dependencies:** None. Uses existing `classify()` function. No new runtime dependencies.
 
 ---
 

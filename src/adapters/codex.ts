@@ -1,4 +1,10 @@
-import type { AgentAdapter, AgentEvent, AgentEventType, AdapterStatus, RiskLevel } from "../core/types.js";
+import type {
+  AgentAdapter,
+  AgentEvent,
+  AgentEventType,
+  AdapterStatus,
+  RiskLevel,
+} from "../core/types.js";
 import { classify } from "../risk/classify.js";
 
 /**
@@ -27,11 +33,13 @@ export interface CodexPreToolUsePayload {
   tool_name: string;
   tool_use_id?: string;
   transcript_path?: string | null;
-  tool_input?: {
-    command?: string;
-    cmd?: string;
-    [key: string]: unknown;
-  } | unknown;
+  tool_input?:
+    | {
+        command?: string;
+        cmd?: string;
+        [key: string]: unknown;
+      }
+    | unknown;
   agent?: string;
   [key: string]: unknown;
 }
@@ -45,11 +53,13 @@ export interface CodexPermissionRequestPayload {
   permission_mode?: string;
   tool_name: string;
   transcript_path?: string | null;
-  tool_input?: {
-    command?: string;
-    cmd?: string;
-    [key: string]: unknown;
-  } | unknown;
+  tool_input?:
+    | {
+        command?: string;
+        cmd?: string;
+        [key: string]: unknown;
+      }
+    | unknown;
   agent?: string;
   [key: string]: unknown;
 }
@@ -71,9 +81,7 @@ export interface CodexPostToolUsePayload {
 }
 
 export type CodexPayload =
-  | CodexPreToolUsePayload
-  | CodexPermissionRequestPayload
-  | CodexPostToolUsePayload;
+  CodexPreToolUsePayload | CodexPermissionRequestPayload | CodexPostToolUsePayload;
 
 // ─── Parser ─────────────────────────────────────────────────────────────────
 
@@ -151,10 +159,7 @@ function extractCommand(toolInput: unknown): string | undefined {
 /**
  * Map a parsed Codex payload to a canonical AgentEvent.
  */
-export function mapCodexEvent(
-  payload: CodexPayload,
-  cache = codexSessionCommandCache,
-): AgentEvent {
+export function mapCodexEvent(payload: CodexPayload, cache = codexSessionCommandCache): AgentEvent {
   const base = {
     agent: "codex" as const,
     sessionId: payload.session_id,
@@ -220,13 +225,14 @@ export function mapCodexEvent(
   // PreToolUse: if command requires confirmation (medium/high risk or not bypassed),
   // Codex is stopped waiting for user approval in the terminal!
   const isBypass =
-    payload.permission_mode === "bypassPermissions" ||
-    payload.permission_mode === "dontAsk";
+    payload.permission_mode === "bypassPermissions" || payload.permission_mode === "dontAsk";
   const isPendingApproval = !isBypass && (riskLevel === "medium" || riskLevel === "high");
 
   return {
     ...base,
-    type: isPendingApproval ? ("permission_required" as AgentEventType) : ("working" as AgentEventType),
+    type: isPendingApproval
+      ? ("permission_required" as AgentEventType)
+      : ("working" as AgentEventType),
     command,
     riskLevel,
     metadata: {

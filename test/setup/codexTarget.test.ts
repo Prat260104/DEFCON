@@ -69,9 +69,7 @@ describe("OpenAI Codex Setup Target", () => {
     const res = target.mergeConfig(existing);
     expect(res.changed).toBe(true);
     expect(res.updated.hooks.PreToolUse).toHaveLength(2);
-    expect(res.updated.hooks.PreToolUse[0].hooks[0].command).toBe(
-      "/usr/local/bin/audit-logger.sh",
-    );
+    expect(res.updated.hooks.PreToolUse[0].hooks[0].command).toBe("/usr/local/bin/audit-logger.sh");
     expect(res.updated.hooks.SessionStart).toHaveLength(1);
   });
 
@@ -111,9 +109,7 @@ describe("OpenAI Codex Setup Target", () => {
     const undoRes = target.undoConfig(initial);
     expect(undoRes.changed).toBe(true);
     expect(undoRes.updated.hooks.PreToolUse).toHaveLength(1);
-    expect(undoRes.updated.hooks.PreToolUse[0].hooks[0].command).toBe(
-      "/usr/local/bin/custom.sh",
-    );
+    expect(undoRes.updated.hooks.PreToolUse[0].hooks[0].command).toBe("/usr/local/bin/custom.sh");
     expect(undoRes.updated.hooks.PermissionRequest).toBeUndefined();
   });
 });

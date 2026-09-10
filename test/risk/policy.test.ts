@@ -80,6 +80,10 @@ describe("resolvePolicy", () => {
       "git push origin main --force",
       "git push --force origin master",
       ":(){ :|:& };:",
+      'echo "rm -rf /" | sh',
+      'echo "rm -rf /" | bash',
+      "printf 'rm -rf /' | sh",
+      "printf 'rm -rf /' | bash",
     ];
 
     it.each(catastrophicBypassVariants)("blocks bypass variant: %s", (cmd) => {
@@ -103,6 +107,15 @@ describe("resolvePolicy", () => {
       const decision = resolvePolicy(cmd, DEFAULT_POLICY_CONFIG);
       expect(decision.isBlacklisted).toBe(false);
       expect(decision.action).not.toBe("block");
+    });
+
+    it("classifies chained echo writing destructive command to script as high risk", () => {
+      const decision = resolvePolicy(
+        'echo "rm -rf /" > script.sh && bash script.sh',
+        DEFAULT_POLICY_CONFIG,
+      );
+      expect(decision.riskLevel).toBe("high");
+      expect(decision.action).toBe("notify-and-confirm");
     });
   });
 

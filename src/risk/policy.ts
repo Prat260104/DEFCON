@@ -23,8 +23,8 @@ export interface PolicyDecision {
 
 export const DEFAULT_BLACKLIST_PATTERNS: RegExp[] = [
   // 1. Recursive destruction of root, root wildcard, or home directory
-  // Matches: rm -rf /, rm -fr /, rm -r -f /, rm --recursive --force /, sudo rm -rf /*, rm -rf ~
-  /^(?:sudo\s+)?rm\s+(?:-[a-zA-Z0-9]*[rR][a-zA-Z0-9]*\s+|-[a-zA-Z0-9]*[fF][a-zA-Z0-9]*\s+|--recursive\s+|--force\s+)+(\/|\/\*|~|~\/\*)\s*$/i,
+  // Matches: rm -rf /, rm -fr /, rm -r -f /, rm --recursive --force /, sudo rm -rf /*, rm -rf ~, rm -rf ~/
+  /^(?:sudo\s+)?rm\s+(?:-[a-zA-Z0-9]*[rR][a-zA-Z0-9]*\s+|-[a-zA-Z0-9]*[fF][a-zA-Z0-9]*\s+|--recursive\s+|--force\s+)+(\/|\/\*|~\/?|~\/\*)\s*$/i,
 
   // 2. Direct filesystem/drive destruction
   /^(?:sudo\s+)?mkfs(?:\.[a-zA-Z0-9_-]+)?\s+/i,
@@ -36,6 +36,12 @@ export const DEFAULT_BLACKLIST_PATTERNS: RegExp[] = [
 
   // 4. Fork bombs
   /:\(\)\s*\{\s*:\|:&\s*\};\s*:/,
+
+  // 5. Pipe-to-shell execution of catastrophic commands (e.g. echo "rm -rf /" | sh, echo "rm -rf /" | bash)
+  /^(?:echo|printf)\s+.*?rm\s+(?:-[a-zA-Z0-9]*[rR][a-zA-Z0-9]*\s+|-[a-zA-Z0-9]*[fF][a-zA-Z0-9]*\s+|--recursive\s+|--force\s+)+(\/|\/\*|~\/?|~\/\*).*?\|\s*(?:sudo\s+)?(?:sh|bash|zsh)\b/i,
+  // Note: Content of piped-to-file scripts (e.g. echo "rm -rf /" > script.sh && bash script.sh)
+  // cannot be statically inspected without filesystem reads; this relies on classify() routing
+  // to high-risk notify-and-confirm rather than hard-block for indirect script execution.
 ];
 
 export const DEFAULT_POLICY_CONFIG: PolicyConfig = {
@@ -57,9 +63,60 @@ export const DEFAULT_POLICY_CONFIG: PolicyConfig = {
 };
 
 /**
+ * Splits a compound command line into subcommands by splitting on
+ * shell operators: `;`, `&&`, `||`. Each subcommand is then evaluated
+ * independently. Pipe `|` is NOT split — pipe chains are semantically
+ * different and are already handled by pipe-to-shell rules.
+ */
+function splitSubcommands(command: string): string[] {
+  // Split on ; && || but not inside quotes
+  // Simple heuristic: split on these operators outside of single/double quotes
+  const parts: string[] = [];
+  let current = "";
+  let inSingle = false;
+  let inDouble = false;
+
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i];
+    const next = command[i + 1];
+
+    if (ch === "'" && !inDouble) {
+      inSingle = !inSingle;
+      current += ch;
+    } else if (ch === '"' && !inSingle) {
+      inDouble = !inDouble;
+      current += ch;
+    } else if (!inSingle && !inDouble) {
+      if (ch === ";") {
+        parts.push(current.trim());
+        current = "";
+      } else if (ch === "&" && next === "&") {
+        parts.push(current.trim());
+        current = "";
+        i++; // skip second &
+      } else if (ch === "|" && next === "|") {
+        parts.push(current.trim());
+        current = "";
+        i++; // skip second |
+      } else {
+        current += ch;
+      }
+    } else {
+      current += ch;
+    }
+  }
+
+  if (current.trim()) {
+    parts.push(current.trim());
+  }
+
+  return parts.filter((p) => p.length > 0);
+}
+
+/**
  * Checks whether a command matches catastrophic blacklist rules.
- * Handles whitespace normalization, flag permutations, and ensures commands
- * wrapped in echo/printf are not falsely blocked.
+ * Handles whitespace normalization, flag permutations, chained command
+ * splitting, and ensures commands wrapped in echo/printf are not falsely blocked.
  */
 export function isBlacklisted(
   command: string,
@@ -68,8 +125,46 @@ export function isBlacklisted(
   const trimmed = command.trim();
   if (!trimmed) return { matched: false };
 
-  // Never match commands that merely echo/print strings (e.g. echo "rm -rf /")
-  if (/^(?:echo|printf|cat\s*<<)\s+/.test(trimmed)) {
+  // Pre-split check: some patterns (fork bombs) contain semicolons in their
+  // own syntax, which the command splitter would break apart. Check the
+  // whole command against these patterns first.
+  const normalized = trimmed.replace(/\s+/g, " ");
+  for (const pattern of DEFAULT_BLACKLIST_PATTERNS) {
+    if (pattern.test(normalized)) {
+      return {
+        matched: true,
+        reason: `Command matched critical security blacklist pattern (${pattern.source})`,
+      };
+    }
+  }
+
+  // Split compound commands and check each subcommand independently.
+  // If ANY subcommand is blacklisted, the whole line is blacklisted.
+  const subcommands = splitSubcommands(trimmed);
+
+  for (const sub of subcommands) {
+    const result = checkSingleCommandBlacklist(sub, customBlacklist);
+    if (result.matched) {
+      return result;
+    }
+  }
+
+  return { matched: false };
+}
+
+/**
+ * Checks a single (non-compound) command against blacklist rules.
+ */
+function checkSingleCommandBlacklist(
+  command: string,
+  customBlacklist: string[],
+): { matched: boolean; reason?: string } {
+  const trimmed = command.trim();
+  if (!trimmed) return { matched: false };
+
+  // Never match commands that merely echo/print strings to stdout without redirection or pipe
+  // (e.g. echo "rm -rf /", printf 'rm -rf /\n')
+  if (/^(?:echo|printf)\s+(?:['"].*['"]|\S+)\s*$/.test(trimmed)) {
     return { matched: false };
   }
 

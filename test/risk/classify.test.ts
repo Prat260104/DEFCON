@@ -275,4 +275,41 @@ describe("classify", () => {
       expect(result.matched).toBe(false);
     });
   });
+
+  // ─── Echo/Printf Exclusion & Bypass Prevention ────────────────────────────
+
+  describe("echo/printf exclusion and bypass prevention", () => {
+    it.each([
+      'echo "rm -rf /"',
+      "echo 'rm -rf /'",
+      'echo "drop table users"',
+      "printf 'rm -rf /\\n'",
+      'echo "git push --force origin main"',
+    ])("classifies standalone echo/printf as low risk: %s", (cmd) => {
+      const result = classify(cmd);
+      expect(result.level).toBe("low");
+      expect(result.matched).toBe(true);
+    });
+
+    it.each([
+      'echo "rm -rf /" > script.sh && bash script.sh',
+      'echo "rm -rf /" > run.sh; sh run.sh',
+    ])("classifies chained echo writing destructive command as high risk: %s", (cmd) => {
+      const result = classify(cmd);
+      expect(result.level).toBe("high");
+    });
+
+    it.each([
+      'echo "rm -rf /" | sh',
+      'echo "rm -rf /" | bash',
+      "printf 'rm -rf /' | sh",
+      "printf 'rm -rf /' | bash",
+      'echo "malicious payload" | sh',
+      'echo "malicious payload" | bash',
+    ])("classifies echo piped to shell as high risk: %s", (cmd) => {
+      const result = classify(cmd);
+      expect(result.level).toBe("high");
+      expect(result.matched).toBe(true);
+    });
+  });
 });
