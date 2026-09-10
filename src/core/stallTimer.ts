@@ -151,7 +151,7 @@ export class StallAlertTimer {
     }
 
     // Fire the real OS notification & audio alarm asynchronously (non-blocking)
-    notify(stallEvent).catch((err) => {
+    Promise.resolve(notify(stallEvent)).catch((err) => {
       console.error("[stallTimer] Failed to dispatch OS notification:", err);
     });
   }

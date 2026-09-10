@@ -2,13 +2,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { StallAlertTimer } from "../../src/core/stallTimer.js";
 import type { AgentEvent } from "../../src/core/types.js";
 
+vi.mock("../../src/notify/index.js", () => ({
+  notify: vi.fn().mockResolvedValue(true),
+}));
+
 describe("StallAlertTimer", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   it("does NOT fire alert if developer responds before timeout", () => {

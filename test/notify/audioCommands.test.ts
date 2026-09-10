@@ -80,29 +80,56 @@ describe("Audio and Notification Command Dispatch Verification", () => {
   it("verifies macOS notification triggers afplay and osascript", async () => {
     const { sendMacNotification } = await import("../../src/notify/macos.js");
     const { getDefaultConfig } = await import("../../src/cli/configManager.js");
-    const event: AgentEvent = {
-      agent: "claude-code",
-      type: "permission_required",
-      command: "rm -rf /dist",
-      riskLevel: "high",
-      timestamp: Date.now(),
-    };
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const { writeFileSync, unlinkSync, existsSync } = await import("node:fs");
 
-    const result = await sendMacNotification(event, getDefaultConfig());
-    expect(result).toBe(true);
+    const dummySound = join(tmpdir(), `test-sound-${Date.now()}.aiff`);
+    writeFileSync(dummySound, "mock-audio-data");
 
-    // Assert osascript notification
-    expect(execFileMock).toHaveBeenCalledWith(
-      "osascript",
-      expect.arrayContaining(["-e"]),
-      expect.any(Function),
-    );
+    try {
+      const config = {
+        ...getDefaultConfig(),
+        notifications: {
+          ...getDefaultConfig().notifications,
+          customSounds: {
+            high: dummySound,
+          },
+        },
+      };
 
-    // Assert afplay audio invocation
-    expect(execFileMock).toHaveBeenCalledWith(
-      "afplay",
-      expect.arrayContaining([expect.stringContaining(".aiff")]),
-      expect.any(Function),
-    );
+      const event: AgentEvent = {
+        agent: "claude-code",
+        type: "permission_required",
+        command: "rm -rf /dist",
+        riskLevel: "high",
+        timestamp: Date.now(),
+      };
+
+      const result = await sendMacNotification(event, config);
+      expect(result).toBe(true);
+
+      // Assert osascript notification
+      expect(execFileMock).toHaveBeenCalledWith(
+        "osascript",
+        expect.arrayContaining(["-e"]),
+        expect.any(Function),
+      );
+
+      // Assert afplay audio invocation
+      expect(execFileMock).toHaveBeenCalledWith(
+        "afplay",
+        expect.arrayContaining([expect.stringContaining(".aiff")]),
+        expect.any(Function),
+      );
+    } finally {
+      if (existsSync(dummySound)) {
+        try {
+          unlinkSync(dummySound);
+        } catch {
+          // Ignored
+        }
+      }
+    }
   });
 });
