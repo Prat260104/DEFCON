@@ -5,7 +5,7 @@
 [![Benchmark F1](https://img.shields.io/badge/risk%20engine%20f1-100%25-blue.svg)](./BENCHMARK.md)
 [![Recall](https://img.shields.io/badge/blacklist%20recall-100%25-brightgreen.svg)](./BENCHMARK.md)
 [![Evaluation Latency](https://img.shields.io/badge/eval%20latency-1.54%C2%B5s-orange.svg)](./BENCHMARK.md)
-[![Node Version](https://img.shields.io/badge/node-%3E%3D20.0.0-informational.svg)](https://nodejs.org)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D22.0.0-informational.svg)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 Local-first safety infrastructure and real-time stall detection for autonomous AI coding agents.
@@ -225,7 +225,7 @@ npx vitest run test/benchmark/benchmark.test.ts
 
 ### Prerequisites
 
-- Node.js version 20.0.0 or higher
+- Node.js version 22.0.0 or higher (Active LTS)
 - macOS, Linux, or Windows (WSL2 / native)
 - Optional: Rust toolchain (version 1.80+) if compiling the desktop tray companion from source
 

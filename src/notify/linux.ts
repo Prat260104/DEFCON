@@ -2,6 +2,7 @@ import { execFile, exec } from "node:child_process";
 import { existsSync } from "node:fs";
 import type { AgentEvent } from "../core/types.js";
 import { formatNotification } from "./macos.js";
+import type { AplConfig } from "../cli/configManager.js";
 
 /**
  * Play audio on Linux using paplay (PulseAudio), pw-play (PipeWire), or aplay (ALSA).
@@ -38,9 +39,12 @@ function playLinuxSound(soundFilePath: string | null): void {
  * Linux desktop notification using `notify-send` + audio playback.
  * Uses critical urgency for high-risk commands.
  */
-export async function sendLinuxNotification(event: AgentEvent): Promise<boolean> {
+export async function sendLinuxNotification(
+  event: AgentEvent,
+  configOverride?: AplConfig,
+): Promise<boolean> {
   return new Promise((resolve) => {
-    const { title, subtitle, body, soundFilePath } = formatNotification(event);
+    const { title, subtitle, body, soundFilePath } = formatNotification(event, configOverride);
     const urgency =
       event.riskLevel === "high" ? "critical" : event.riskLevel === "medium" ? "normal" : "low";
 

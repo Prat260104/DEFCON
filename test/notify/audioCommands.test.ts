@@ -24,6 +24,7 @@ describe("Audio and Notification Command Dispatch Verification", () => {
 
   it("verifies Windows notification executes PowerShell with Toast and SoundPlayer audio script", async () => {
     const { sendWindowsNotification } = await import("../../src/notify/windows.js");
+    const { getDefaultConfig } = await import("../../src/cli/configManager.js");
     const event: AgentEvent = {
       agent: "claude-code",
       type: "permission_required",
@@ -32,7 +33,17 @@ describe("Audio and Notification Command Dispatch Verification", () => {
       timestamp: Date.now(),
     };
 
-    const result = await sendWindowsNotification(event);
+    const config = {
+      ...getDefaultConfig(),
+      notifications: {
+        ...getDefaultConfig().notifications,
+        customSounds: {
+          medium: "C:\\Windows\\Media\\chimes.wav",
+        },
+      },
+    };
+
+    const result = await sendWindowsNotification(event, config);
     expect(result).toBe(true);
 
     // Assert powershell was called

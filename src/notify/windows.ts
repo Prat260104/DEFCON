@@ -1,13 +1,17 @@
 import { execFile } from "node:child_process";
 import type { AgentEvent } from "../core/types.js";
 import { formatNotification } from "./macos.js";
+import type { AplConfig } from "../cli/configManager.js";
 
 /**
  * Windows toast notification implementation using PowerShell.
  */
-export async function sendWindowsNotification(event: AgentEvent): Promise<boolean> {
+export async function sendWindowsNotification(
+  event: AgentEvent,
+  configOverride?: AplConfig,
+): Promise<boolean> {
   return new Promise((resolve) => {
-    const { title, subtitle, body, soundFilePath } = formatNotification(event);
+    const { title, subtitle, body, soundFilePath } = formatNotification(event, configOverride);
     const fullMessage = `${subtitle}\n${body}`;
 
     // PowerShell script to trigger standard Windows toast + audible audio playback

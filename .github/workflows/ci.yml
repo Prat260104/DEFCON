@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [22.x]
 
     steps:
       - name: Checkout repository
@@ -45,7 +45,7 @@ jobs:
         run: npm run build
 
       - name: Run Vitest test suite (339 tests)
-        run: npm test
+        run: npm test -- --reporter=verbose
 
       - name: Execute Risk Engine Benchmark & Regression Gate
         run: npm run benchmark
