@@ -6,7 +6,7 @@ use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 use tauri::image::Image;
-use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::tray::TrayIconBuilder;
 use tokio::sync::mpsc;
 use tokio_tungstenite::connect_async;
@@ -60,6 +60,21 @@ enum ServerMessage {
         #[serde(default)]
         sound: Option<String>,
     },
+    #[serde(rename = "config_updated")]
+    ConfigUpdated {
+        #[serde(default)]
+        key: Option<String>,
+    },
+    #[serde(rename = "sound_imported")]
+    SoundImported {
+        success: bool,
+        #[serde(rename = "soundName", default)]
+        sound_name: Option<String>,
+        #[serde(default)]
+        tier: Option<String>,
+        #[serde(default)]
+        error: Option<String>,
+    },
     #[serde(rename = "shutdown_ack")]
     ShutdownAck,
     #[serde(rename = "pong")]
@@ -71,6 +86,12 @@ enum ServerMessage {
 enum ClientAction {
     Shutdown,
     TestSound,
+    SetStallTimeout(u64),
+    ImportSound {
+        file_path: String,
+        tier: Option<String>,
+    },
+    ResetSounds,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -168,6 +189,30 @@ fn main() {
                 None::<&str>,
             )?;
             let sep1 = PredefinedMenuItem::separator(app)?;
+
+            // Stall alert timeout threshold submenu
+            let stall_20 = MenuItem::with_id(app, "stall_20", "20 seconds", true, None::<&str>)?;
+            let stall_35 = MenuItem::with_id(app, "stall_35", "35 seconds (Default)", true, None::<&str>)?;
+            let stall_45 = MenuItem::with_id(app, "stall_45", "45 seconds", true, None::<&str>)?;
+            let stall_60 = MenuItem::with_id(app, "stall_60", "60 seconds (1 minute)", true, None::<&str>)?;
+            let stall_90 = MenuItem::with_id(app, "stall_90", "90 seconds (1.5 minutes)", true, None::<&str>)?;
+            let stall_120 = MenuItem::with_id(app, "stall_120", "120 seconds (2 minutes)", true, None::<&str>)?;
+
+            let stall_submenu = Submenu::with_items(
+                app,
+                "⏱️ Stall Alert Threshold",
+                true,
+                &[
+                    &stall_20,
+                    &stall_35,
+                    &stall_45,
+                    &stall_60,
+                    &stall_90,
+                    &stall_120,
+                ],
+            )?;
+
+            // Acoustic alert settings submenu
             let test_sound_item = MenuItem::with_id(
                 app,
                 "test_sound",
@@ -175,6 +220,60 @@ fn main() {
                 true,
                 None::<&str>,
             )?;
+            let sep_sound1 = PredefinedMenuItem::separator(app)?;
+            let upload_stall = MenuItem::with_id(
+                app,
+                "upload_sound_stall",
+                "📁 Upload Custom Sound for Stall Alert...",
+                true,
+                None::<&str>,
+            )?;
+            let upload_high = MenuItem::with_id(
+                app,
+                "upload_sound_high",
+                "📁 Upload Custom Sound for High Risk...",
+                true,
+                None::<&str>,
+            )?;
+            let upload_med = MenuItem::with_id(
+                app,
+                "upload_sound_medium",
+                "📁 Upload Custom Sound for Medium Risk...",
+                true,
+                None::<&str>,
+            )?;
+            let upload_low = MenuItem::with_id(
+                app,
+                "upload_sound_low",
+                "📁 Upload Custom Sound for Low Risk...",
+                true,
+                None::<&str>,
+            )?;
+            let sep_sound2 = PredefinedMenuItem::separator(app)?;
+            let reset_sounds_item = MenuItem::with_id(
+                app,
+                "reset_sounds",
+                "🔄 Reset Sounds to System Defaults",
+                true,
+                None::<&str>,
+            )?;
+
+            let sound_submenu = Submenu::with_items(
+                app,
+                "🔊 Acoustic Alert Settings",
+                true,
+                &[
+                    &test_sound_item,
+                    &sep_sound1,
+                    &upload_stall,
+                    &upload_high,
+                    &upload_med,
+                    &upload_low,
+                    &sep_sound2,
+                    &reset_sounds_item,
+                ],
+            )?;
+
             let sep2 = PredefinedMenuItem::separator(app)?;
             let quit_item = MenuItem::with_id(
                 app,
@@ -190,7 +289,8 @@ fn main() {
                     &header_item,
                     &detail_item,
                     &sep1,
-                    &test_sound_item,
+                    &stall_submenu,
+                    &sound_submenu,
                     &sep2,
                     &quit_item,
                 ],
@@ -215,6 +315,63 @@ fn main() {
                             if let Err(e) = action_sender.try_send(ClientAction::TestSound) {
                                 eprintln!("[tray] Failed to dispatch TestSound: {e}");
                             }
+                        }
+                        "stall_20" => {
+                            let _ = action_sender.try_send(ClientAction::SetStallTimeout(20));
+                        }
+                        "stall_35" => {
+                            let _ = action_sender.try_send(ClientAction::SetStallTimeout(35));
+                        }
+                        "stall_45" => {
+                            let _ = action_sender.try_send(ClientAction::SetStallTimeout(45));
+                        }
+                        "stall_60" => {
+                            let _ = action_sender.try_send(ClientAction::SetStallTimeout(60));
+                        }
+                        "stall_90" => {
+                            let _ = action_sender.try_send(ClientAction::SetStallTimeout(90));
+                        }
+                        "stall_120" => {
+                            let _ = action_sender.try_send(ClientAction::SetStallTimeout(120));
+                        }
+                        "upload_sound_stall"
+                        | "upload_sound_high"
+                        | "upload_sound_medium"
+                        | "upload_sound_low" => {
+                            let tier = match event.id().as_ref() {
+                                "upload_sound_stall" => "stall",
+                                "upload_sound_high" => "high",
+                                "upload_sound_medium" => "medium",
+                                "upload_sound_low" => "low",
+                                _ => "high",
+                            }
+                            .to_string();
+                            let action_sender_clone = action_sender.clone();
+                            std::thread::spawn(move || {
+                                println!("[tray] Opening native audio file picker for tier: {tier}...");
+                                if let Some(path) = rfd::FileDialog::new()
+                                    .set_title("DEFCON: Select Custom Alert Sound")
+                                    .add_filter(
+                                        "Audio Files",
+                                        &["mp3", "wav", "aiff", "ogg", "m4a", "flac"],
+                                    )
+                                    .pick_file()
+                                {
+                                    let path_str = path.to_string_lossy().to_string();
+                                    println!("[tray] File selected: {path_str}");
+                                    if let Err(e) = action_sender_clone.try_send(ClientAction::ImportSound {
+                                        file_path: path_str,
+                                        tier: Some(tier),
+                                    }) {
+                                        eprintln!("[tray] Failed to dispatch ImportSound action: {e}");
+                                    }
+                                } else {
+                                    println!("[tray] Custom sound file dialog cancelled.");
+                                }
+                            });
+                        }
+                        "reset_sounds" => {
+                            let _ = action_sender.try_send(ClientAction::ResetSounds);
                         }
                         _ => {}
                     }
@@ -276,6 +433,42 @@ fn main() {
                                                     eprintln!("[tray] Failed to send test_sound message: {e}");
                                                 } else {
                                                     println!("[tray] 'test_sound' message sent successfully.");
+                                                }
+                                            }
+                                            Some(ClientAction::SetStallTimeout(sec)) => {
+                                                println!("[tray] Dispatching 'set_stall_timeout' ({}s) to daemon over WebSocket...", sec);
+                                                let payload = serde_json::json!({
+                                                    "type": "set_stall_timeout",
+                                                    "seconds": sec
+                                                }).to_string();
+                                                if let Err(e) = write_half.send(WsMessage::Text(payload.into())).await {
+                                                    eprintln!("[tray] Failed to send set_stall_timeout message: {e}");
+                                                } else {
+                                                    println!("[tray] 'set_stall_timeout' sent successfully.");
+                                                }
+                                            }
+                                            Some(ClientAction::ImportSound { file_path, tier }) => {
+                                                println!("[tray] Dispatching 'import_sound' to daemon over WebSocket...");
+                                                let payload = serde_json::json!({
+                                                    "type": "import_sound",
+                                                    "filePath": file_path,
+                                                    "tier": tier
+                                                }).to_string();
+                                                if let Err(e) = write_half.send(WsMessage::Text(payload.into())).await {
+                                                    eprintln!("[tray] Failed to send import_sound message: {e}");
+                                                } else {
+                                                    println!("[tray] 'import_sound' sent successfully.");
+                                                }
+                                            }
+                                            Some(ClientAction::ResetSounds) => {
+                                                println!("[tray] Dispatching 'reset_sounds' to daemon over WebSocket...");
+                                                let payload = serde_json::json!({
+                                                    "type": "reset_sounds"
+                                                }).to_string();
+                                                if let Err(e) = write_half.send(WsMessage::Text(payload.into())).await {
+                                                    eprintln!("[tray] Failed to send reset_sounds message: {e}");
+                                                } else {
+                                                    println!("[tray] 'reset_sounds' sent successfully.");
                                                 }
                                             }
                                             Some(ClientAction::Shutdown) => {
@@ -365,6 +558,16 @@ fn main() {
                                                                 &format!("Stalled for {}s ({})", sec, snd),
                                                                 &format!("DEFCON: Stall alert ({}s)", sec),
                                                             );
+                                                        }
+                                                        ServerMessage::ConfigUpdated { key } => {
+                                                            println!("[tray] Daemon configuration updated: {:?}", key);
+                                                        }
+                                                        ServerMessage::SoundImported { success, sound_name, tier, error } => {
+                                                            if success {
+                                                                println!("[tray] Custom sound imported successfully: name={:?}, tier={:?}", sound_name, tier);
+                                                            } else {
+                                                                eprintln!("[tray] Custom sound import error: {:?}", error);
+                                                            }
                                                         }
                                                         ServerMessage::ShutdownAck => {
                                                             app_handle_for_ws.exit(0);

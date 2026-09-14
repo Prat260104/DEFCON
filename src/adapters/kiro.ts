@@ -7,6 +7,7 @@ import type { AgentAdapter, AgentEvent, AgentEventType, AdapterStatus } from "..
 import { classify } from "../risk/classify.js";
 import { resolvePolicy, type PolicyConfig } from "../risk/policy.js";
 import { loadConfig } from "../cli/configManager.js";
+import { sanitizePath } from "../core/pathSanitizer.js";
 
 /**
  * Kiro IDE Adapter — Universal Dual-Mode Observer
@@ -370,7 +371,7 @@ export class KiroAdapter implements AgentAdapter {
         metadata: {
           toolCallId: check.toolCallId,
           isWhitelisted: check.isWhitelisted,
-          transcriptPath: filePath,
+          transcriptPath: sanitizePath(filePath),
         },
       };
 
@@ -387,7 +388,7 @@ export class KiroAdapter implements AgentAdapter {
         type: "completed",
         timestamp: this.lastEventAt,
         metadata: {
-          transcriptPath: filePath,
+          transcriptPath: sanitizePath(filePath),
         },
       };
 

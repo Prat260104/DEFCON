@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { createServer, type Server as HttpServer } from "node:http";
 import type { AgentEvent } from "../core/types.js";
+import { sanitizeEvent } from "../core/pathSanitizer.js";
 
 export const DEFAULT_WS_PORT = 48123;
 export const DEFAULT_WS_HOST = "127.0.0.1";
@@ -12,6 +13,7 @@ export type AplWsServerMessage =
       pendingEvent: AgentEvent | null;
       soundEnabled: boolean;
       version: string;
+      stallAlertSeconds?: number;
     }
   | {
       type: "event";
@@ -29,6 +31,18 @@ export type AplWsServerMessage =
       pendingEvent: AgentEvent | null;
     }
   | {
+      type: "config_updated";
+      key: string;
+      value: unknown;
+    }
+  | {
+      type: "sound_imported";
+      success: boolean;
+      soundName?: string;
+      tier?: string;
+      error?: string;
+    }
+  | {
       type: "shutdown_ack";
     }
   | {
@@ -42,6 +56,19 @@ export type AplClientMessage =
   | {
       type: "test_sound";
       tier?: string;
+    }
+  | {
+      type: "set_stall_timeout";
+      seconds: number;
+    }
+  | {
+      type: "import_sound";
+      filePath: string;
+      tier?: "low" | "medium" | "high" | "stall";
+      name?: string;
+    }
+  | {
+      type: "reset_sounds";
     }
   | {
       type: "ping";
@@ -145,8 +172,22 @@ export class AplWebSocketServer {
     });
   }
 
+  private sanitizeOutgoingMessage(message: AplWsServerMessage): AplWsServerMessage {
+    if (message.type === "event" && message.event) {
+      return { ...message, event: sanitizeEvent(message.event) };
+    }
+    if (message.type === "state" && message.pendingEvent) {
+      return { ...message, pendingEvent: sanitizeEvent(message.pendingEvent) };
+    }
+    if (message.type === "init" && message.pendingEvent) {
+      return { ...message, pendingEvent: sanitizeEvent(message.pendingEvent) };
+    }
+    return message;
+  }
+
   broadcast(message: AplWsServerMessage): void {
-    const payload = JSON.stringify(message);
+    const cleanMsg = this.sanitizeOutgoingMessage(message);
+    const payload = JSON.stringify(cleanMsg);
     for (const client of this.clients) {
       if (client.readyState === WebSocket.OPEN) {
         try {
@@ -161,7 +202,8 @@ export class AplWebSocketServer {
   sendTo(ws: WebSocket, message: AplWsServerMessage): void {
     if (ws.readyState === WebSocket.OPEN) {
       try {
-        ws.send(JSON.stringify(message));
+        const cleanMsg = this.sanitizeOutgoingMessage(message);
+        ws.send(JSON.stringify(cleanMsg));
       } catch {
         // Socket write error
       }

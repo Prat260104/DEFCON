@@ -1,7 +1,7 @@
 # Agent Permission Layer (DEFCON)
 
 [![CI](https://github.com/Prat260104/DEFCON/actions/workflows/ci.yml/badge.svg)](https://github.com/Prat260104/DEFCON/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-339%20passed-brightgreen.svg)](https://github.com/Prat260104/DEFCON)
+[![Tests](https://img.shields.io/badge/tests-370%20passed-brightgreen.svg)](https://github.com/Prat260104/DEFCON)
 [![Benchmark F1](https://img.shields.io/badge/risk%20engine%20f1-100%25-blue.svg)](./BENCHMARK.md)
 [![Recall](https://img.shields.io/badge/blacklist%20recall-100%25-brightgreen.svg)](./BENCHMARK.md)
 [![Evaluation Latency](https://img.shields.io/badge/eval%20latency-1.54%C2%B5s-orange.svg)](./BENCHMARK.md)

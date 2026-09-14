@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import type { AgentEvent, RiskLevel } from "../core/types.js";
 import { loadConfig, type AplConfig } from "../cli/configManager.js";
 import { resolveSoundForEvent } from "./soundManager.js";
+import { sanitizePath } from "../core/pathSanitizer.js";
 
 /**
  * macOS native notification implementation using AppleScript (`osascript`) & `afplay`.
@@ -53,20 +54,22 @@ export function formatNotification(
   let subtitle = `${badge} ${event.type === "permission_required" ? "Permission Required" : "Action Pending"}`;
   let body = "";
 
+  const cleanCommand = event.command ? sanitizePath(event.command) : undefined;
+
   if (isDrift) {
     title = `⚠️ Whitelist Drift (${stallSec}s)`;
     subtitle = `Unresolved Whitelisted Command`;
-    body = `Agent waiting on '${event.command ?? "command"}'. Your whitelist or IDE auto-approve settings may have changed.`;
+    body = `Agent waiting on '${cleanCommand ?? "command"}'. Your whitelist or IDE auto-approve settings may have changed.`;
   } else if (isStall) {
     title = `⚠️ Agent Blocked (${stallSec}s)`;
-    if (event.command) {
-      body = event.command.length > 120 ? `${event.command.slice(0, 117)}...` : event.command;
+    if (cleanCommand) {
+      body = cleanCommand.length > 120 ? `${cleanCommand.slice(0, 117)}...` : cleanCommand;
     } else {
       body = `Agent is waiting for approval (${event.type})`;
     }
   } else {
-    if (event.command) {
-      body = event.command.length > 120 ? `${event.command.slice(0, 117)}...` : event.command;
+    if (cleanCommand) {
+      body = cleanCommand.length > 120 ? `${cleanCommand.slice(0, 117)}...` : cleanCommand;
     } else {
       body = `Agent is waiting for approval (${event.type})`;
     }

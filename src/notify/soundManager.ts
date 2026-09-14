@@ -1,8 +1,32 @@
 import { existsSync, mkdirSync, readdirSync, statSync, copyFileSync, unlinkSync } from "node:fs";
 import { join, extname, basename } from "node:path";
+import { homedir } from "node:os";
 import { execFile, exec } from "node:child_process";
 import type { AgentEvent, RiskLevel } from "../core/types.js";
 import { getDefaultSoundsDir, type AplConfig, type SoundTier } from "../cli/configManager.js";
+
+/**
+ * Expand leading ~ to current user's homedir.
+ */
+export function expandTildePath(p: string): string {
+  if (!p || typeof p !== "string") return "";
+  if (p.startsWith("~/") || p === "~") {
+    return join(homedir(), p.slice(1));
+  }
+  return p;
+}
+
+/**
+ * Safely resolves a custom sound path supporting ~ expansion and ~/.apl/sounds/ lookups.
+ */
+export function resolveCustomSoundPath(candidate: string | undefined): string | null {
+  if (!candidate) return null;
+  const expanded = expandTildePath(candidate);
+  if (existsSync(expanded)) return expanded;
+  const inSoundsDir = join(getDefaultSoundsDir(), candidate);
+  if (existsSync(inSoundsDir)) return inSoundsDir;
+  return null;
+}
 
 export const SUPPORTED_AUDIO_EXTENSIONS = [
   ".mp3",
@@ -241,8 +265,8 @@ export function resolveSoundForEvent(
     // 1. Optional per-level custom sound override (e.g. stall-level-2, stall-level-3)
     if (escalationLevel !== undefined) {
       const levelKey = `stall-level-${escalationLevel}` as SoundTier;
-      const levelCustomSound = customSounds?.[levelKey];
-      if (typeof levelCustomSound === "string" && existsSync(levelCustomSound)) {
+      const levelCustomSound = resolveCustomSoundPath(customSounds?.[levelKey]);
+      if (levelCustomSound) {
         return {
           soundName: basename(levelCustomSound, extname(levelCustomSound)),
           soundFilePath: levelCustomSound,
@@ -252,10 +276,11 @@ export function resolveSoundForEvent(
 
     // 2. Custom stall sound configured via sound manager:
     // Plays at EVERY escalation level (1, 2, and 3+) by default — consistency is expected
-    if (customSounds?.stall && existsSync(customSounds.stall)) {
+    const stallCustomSound = resolveCustomSoundPath(customSounds?.stall);
+    if (stallCustomSound) {
       return {
-        soundName: basename(customSounds.stall, extname(customSounds.stall)),
-        soundFilePath: customSounds.stall,
+        soundName: basename(stallCustomSound, extname(stallCustomSound)),
+        soundFilePath: stallCustomSound,
       };
     }
 
@@ -279,16 +304,18 @@ export function resolveSoundForEvent(
     }
 
     // Alert 1 (or unescalated stall): Standard tier sound (tier custom -> global custom -> built-in tier default)
-    if (customSounds?.[risk] && existsSync(customSounds[risk]!)) {
+    const tierCustomSound = resolveCustomSoundPath(customSounds?.[risk]);
+    if (tierCustomSound) {
       return {
-        soundName: basename(customSounds[risk]!, extname(customSounds[risk]!)),
-        soundFilePath: customSounds[risk]!,
+        soundName: basename(tierCustomSound, extname(tierCustomSound)),
+        soundFilePath: tierCustomSound,
       };
     }
-    if (globalCustom && existsSync(globalCustom)) {
+    const globalCustomSound = resolveCustomSoundPath(globalCustom);
+    if (globalCustomSound) {
       return {
-        soundName: basename(globalCustom, extname(globalCustom)),
-        soundFilePath: globalCustom,
+        soundName: basename(globalCustomSound, extname(globalCustomSound)),
+        soundFilePath: globalCustomSound,
       };
     }
     const soundName = config.notifications?.sounds?.[risk] || DEFAULT_RISK_SOUND_MAP[risk] || "Pop";
@@ -300,18 +327,20 @@ export function resolveSoundForEvent(
 
   // Non-stall normal event:
   // 1. Tier-specific custom sound
-  if (customSounds?.[risk] && existsSync(customSounds[risk]!)) {
+  const tierCustomSound = resolveCustomSoundPath(customSounds?.[risk]);
+  if (tierCustomSound) {
     return {
-      soundName: basename(customSounds[risk]!, extname(customSounds[risk]!)),
-      soundFilePath: customSounds[risk]!,
+      soundName: basename(tierCustomSound, extname(tierCustomSound)),
+      soundFilePath: tierCustomSound,
     };
   }
 
   // 2. Global custom sound
-  if (globalCustom && existsSync(globalCustom)) {
+  const globalCustomSound = resolveCustomSoundPath(globalCustom);
+  if (globalCustomSound) {
     return {
-      soundName: basename(globalCustom, extname(globalCustom)),
-      soundFilePath: globalCustom,
+      soundName: basename(globalCustomSound, extname(globalCustomSound)),
+      soundFilePath: globalCustomSound,
     };
   }
 
@@ -332,7 +361,15 @@ export function resolveSoundForEvent(
  */
 export async function playAudio(filePathOrBuiltin: string): Promise<boolean> {
   return new Promise((resolve) => {
-    let targetPath = filePathOrBuiltin;
+    let targetPath = expandTildePath(filePathOrBuiltin);
+
+    // Check if sound exists in ~/.apl/sounds/ by relative name
+    if (!existsSync(targetPath)) {
+      const inSoundsDir = join(getDefaultSoundsDir(), filePathOrBuiltin);
+      if (existsSync(inSoundsDir)) {
+        targetPath = inSoundsDir;
+      }
+    }
 
     // Check if it's a macOS built-in sound name
     if (!existsSync(targetPath)) {

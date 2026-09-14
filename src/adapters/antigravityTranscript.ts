@@ -14,6 +14,7 @@ import { homedir } from "node:os";
  */
 import { resolvePolicy, type PolicyConfig } from "../risk/policy.js";
 import { loadConfig } from "../cli/configManager.js";
+import { sanitizePath } from "../core/pathSanitizer.js";
 
 export interface PendingApprovalResult {
   isPending: boolean;
@@ -180,7 +181,7 @@ export class AntigravityAdapter implements AgentAdapter {
         metadata: {
           toolName: check.toolName,
           isWhitelisted: check.isWhitelisted,
-          transcriptPath: filePath,
+          transcriptPath: sanitizePath(filePath),
         },
       };
 
@@ -198,7 +199,7 @@ export class AntigravityAdapter implements AgentAdapter {
         type: "completed",
         timestamp: this.lastEventAt,
         metadata: {
-          transcriptPath: filePath,
+          transcriptPath: sanitizePath(filePath),
         },
       };
 

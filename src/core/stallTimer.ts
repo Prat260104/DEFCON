@@ -59,6 +59,35 @@ export class StallAlertTimer {
     this.onStallAlert = options.onStallAlert;
   }
 
+  /**
+   * Dynamically update the stall alert threshold in-memory (e.g. from System Tray).
+   */
+  updateStallAlertSeconds(seconds: number): void {
+    if (seconds > 0) {
+      this.defaultTimeoutMs = Math.max(1, seconds) * 1000;
+      // Reschedule in-flight initial timers that haven't fired yet
+      for (const [key, entry] of this.activeTimers.entries()) {
+        if (!entry.hasFired && entry.repeatCount === 0) {
+          const isWhitelisted = Boolean(entry.event.metadata?.["isWhitelisted"]);
+          if (!isWhitelisted) {
+            if (entry.timer) {
+              clearTimeout(entry.timer);
+            }
+            const elapsed = Date.now() - entry.startedAt;
+            const remaining = Math.max(0, this.defaultTimeoutMs - elapsed);
+            entry.timer = setTimeout(() => {
+              this.fireAlert(key);
+            }, remaining);
+          }
+        }
+      }
+    }
+  }
+
+  getStallAlertSeconds(): number {
+    return Math.round(this.defaultTimeoutMs / 1000);
+  }
+
   private getSessionKey(event: AgentEvent): string {
     return event.sessionId || event.agent;
   }

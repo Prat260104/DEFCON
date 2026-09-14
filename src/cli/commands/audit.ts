@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { SqliteEventStore, getDefaultDbPath } from "../../storage/sqliteStore.js";
 import type { AgentEvent, RiskLevel } from "../../core/types.js";
+import { sanitizePath, sanitizeEvent } from "../../core/pathSanitizer.js";
 
 export function parseDurationToTimestamp(input: string, now: number = Date.now()): number | null {
   const trimmed = input.trim().toLowerCase();
@@ -121,22 +122,24 @@ export function createAuditCommand(): Command {
           since: sinceTimestamp,
         });
 
+        const sanitizedEvents = events.map((e) => sanitizeEvent(e));
+
         const isJson = options.json || options.export?.toLowerCase() === "json";
         const isCsv = options.csv || options.export?.toLowerCase() === "csv";
 
         if (isJson) {
-          console.log(JSON.stringify(events, null, 2));
+          console.log(JSON.stringify(sanitizedEvents, null, 2));
           return;
         }
 
         if (isCsv) {
-          console.log(formatEventsAsCsv(events));
+          console.log(formatEventsAsCsv(sanitizedEvents));
           return;
         }
 
         if (events.length === 0) {
           console.log("\n  No events recorded matching criteria.");
-          console.log(`  Database: ${dbPath}`);
+          console.log(`  Database: ${sanitizePath(dbPath)}`);
           console.log(
             "  Start monitoring with `defcon start` (or `apl start`) to record agent activity.\n",
           );

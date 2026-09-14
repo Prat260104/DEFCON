@@ -1,5 +1,5 @@
 import { spawn, execSync, type ChildProcess } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, statSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { homedir } from "node:os";
 
@@ -46,16 +46,32 @@ export class TrayManager {
       "/usr/local/bin/defcon-tray",
     ];
 
+    let newestCandidate: string | null = null;
+    let newestMtime = -1;
+
     for (const candidate of candidates) {
-      if (existsSync(candidate)) {
-        return candidate;
+      let candidatePath = candidate;
+      if (
+        process.platform === "win32" &&
+        !existsSync(candidatePath) &&
+        existsSync(`${candidatePath}.exe`)
+      ) {
+        candidatePath = `${candidatePath}.exe`;
       }
-      if (process.platform === "win32" && existsSync(`${candidate}.exe`)) {
-        return `${candidate}.exe`;
+      if (existsSync(candidatePath)) {
+        try {
+          const mtime = statSync(candidatePath).mtimeMs;
+          if (mtime > newestMtime) {
+            newestMtime = mtime;
+            newestCandidate = candidatePath;
+          }
+        } catch {
+          if (!newestCandidate) newestCandidate = candidatePath;
+        }
       }
     }
 
-    return null;
+    return newestCandidate;
   }
 
   /**

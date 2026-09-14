@@ -385,4 +385,99 @@ describe("StallAlertTimer", () => {
       expect(onStallAlert).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("Dynamic Stall Timeout Adjustment", () => {
+    it("dynamically updates the stall threshold for new events", () => {
+      const onStallAlert = vi.fn();
+      const timer = new StallAlertTimer({
+        stallAlertSeconds: 35,
+        onStallAlert,
+      });
+
+      // Update threshold to 60s
+      timer.updateStallAlertSeconds(60);
+
+      timer.handleEvent({
+        agent: "claude-code",
+        type: "permission_required",
+        command: "npm test",
+        timestamp: Date.now(),
+      });
+
+      // At 35s, it should NOT fire because threshold was updated to 60s
+      vi.advanceTimersByTime(35000);
+      expect(onStallAlert).not.toHaveBeenCalled();
+
+      // At 60s, it fires
+      vi.advanceTimersByTime(25000);
+      expect(onStallAlert).toHaveBeenCalledOnce();
+    });
+
+    it("reschedules existing pending session timers when threshold increases", () => {
+      const onStallAlert = vi.fn();
+      const timer = new StallAlertTimer({
+        stallAlertSeconds: 35,
+        onStallAlert,
+      });
+
+      timer.handleEvent({
+        agent: "claude-code",
+        type: "permission_required",
+        command: "test",
+        timestamp: Date.now(),
+      });
+
+      // 20s pass
+      vi.advanceTimersByTime(20000);
+
+      // User dynamically changes timeout to 60s
+      timer.updateStallAlertSeconds(60);
+
+      // Advance by another 15s (total 35s from start) -> must NOT fire yet!
+      vi.advanceTimersByTime(15000);
+      expect(onStallAlert).not.toHaveBeenCalled();
+
+      // Advance by 25s more (total 60s from start) -> fires now!
+      vi.advanceTimersByTime(25000);
+      expect(onStallAlert).toHaveBeenCalledOnce();
+    });
+
+    it("verifies dynamic transitions across 20s, 35s, 60s, and 120s without dropping active sessions", () => {
+      const intervals = [20, 35, 60, 120];
+
+      for (const seconds of intervals) {
+        const onStallAlert = vi.fn();
+        const timer = new StallAlertTimer({
+          stallAlertSeconds: 35,
+          onStallAlert,
+        });
+
+        const event: AgentEvent = {
+          agent: "claude-code",
+          sessionId: `session-${seconds}`,
+          type: "permission_required",
+          command: `run-job-${seconds}`,
+          timestamp: Date.now(),
+        };
+
+        timer.handleEvent(event);
+        expect(timer.checkPending(`session-${seconds}`)).toBe(true);
+
+        // Dynamically update to the target interval
+        timer.updateStallAlertSeconds(seconds);
+        expect(timer.getStallAlertSeconds()).toBe(seconds);
+        // Active session must NOT be dropped
+        expect(timer.checkPending(`session-${seconds}`)).toBe(true);
+
+        // Advance to 1 second before target threshold
+        vi.advanceTimersByTime((seconds - 1) * 1000);
+        expect(onStallAlert).not.toHaveBeenCalled();
+
+        // Advance 1 more second to reach the threshold
+        vi.advanceTimersByTime(1000);
+        expect(onStallAlert).toHaveBeenCalledOnce();
+        expect(timer.checkHasFired(`session-${seconds}`)).toBe(true);
+      }
+    });
+  });
 });

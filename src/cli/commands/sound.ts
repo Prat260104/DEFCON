@@ -17,6 +17,7 @@ import {
   BUILT_IN_MACOS_SOUNDS,
   DEFAULT_RISK_SOUND_MAP,
 } from "../../notify/soundManager.js";
+import { sanitizePath } from "../../core/pathSanitizer.js";
 
 const VALID_TIERS: SoundTier[] = ["low", "medium", "high", "stall"];
 
@@ -41,7 +42,9 @@ export function createSoundCommand(): Command {
 
       console.log("Active Sound Configuration:");
       console.log("---------------------------");
-      console.log(`Global Custom Sound : ${config.notifications.customSoundPath || "(none)"}`);
+      console.log(
+        `Global Custom Sound : ${sanitizePath(config.notifications.customSoundPath) || "(none)"}`,
+      );
       console.log(
         `Stall Alert Sound   : ${config.notifications.customSounds?.stall || "(default: Sosumi)"}`,
       );
@@ -56,7 +59,7 @@ export function createSoundCommand(): Command {
       );
       console.log("");
 
-      console.log(`Custom Assets in ${getDefaultSoundsDir()}:`);
+      console.log(`Custom Assets in ${sanitizePath(getDefaultSoundsDir())}:`);
       console.log("-----------------------------------------");
       if (custom.length === 0) {
         console.log(
@@ -66,7 +69,7 @@ export function createSoundCommand(): Command {
         for (const item of custom) {
           const sizeKb = (item.sizeBytes / 1024).toFixed(1);
           console.log(
-            `  • ${item.name.padEnd(20)} [${item.extension.toUpperCase()}] (${sizeKb} KB) -> ${item.path}`,
+            `  • ${item.name.padEnd(20)} [${item.extension.toUpperCase()}] (${sizeKb} KB) -> ${sanitizePath(item.path)}`,
           );
         }
       }
@@ -93,7 +96,7 @@ export function createSoundCommand(): Command {
       }
 
       console.log(`\n✅ Successfully imported sound asset "${result.soundName}"!`);
-      console.log(`📁 Stored at: ${result.destPath}`);
+      console.log(`📁 Stored at: ${sanitizePath(result.destPath)}`);
 
       const configPath = getDefaultConfigPath();
       const config = loadConfig(configPath);
@@ -152,7 +155,7 @@ export function createSoundCommand(): Command {
         config.notifications.customSounds[tier] = matchedAsset.path;
         saveConfig(config, configPath);
         console.log(
-          `✅ Set ${tier.toUpperCase()} risk sound to custom asset "${matchedAsset.name}" (${matchedAsset.path}).`,
+          `✅ Set ${tier.toUpperCase()} risk sound to custom asset "${matchedAsset.name}" (${sanitizePath(matchedAsset.path)}).`,
         );
         return;
       }
@@ -166,7 +169,9 @@ export function createSoundCommand(): Command {
         }
         config.notifications.customSounds[tier] = soundInput;
         saveConfig(config, configPath);
-        console.log(`✅ Set ${tier.toUpperCase()} risk sound to file path: ${soundInput}`);
+        console.log(
+          `✅ Set ${tier.toUpperCase()} risk sound to file path: ${sanitizePath(soundInput)}`,
+        );
         return;
       }
 
@@ -237,7 +242,7 @@ export function createSoundCommand(): Command {
         targetSound = config.notifications.customSoundPath;
       }
 
-      console.log(`🔊 Playing audio preview for "${targetSound}"...`);
+      console.log(`🔊 Playing audio preview for "${sanitizePath(targetSound)}"...`);
       const played = await playAudio(targetSound);
       if (played) {
         console.log("✅ Audio playback complete.");

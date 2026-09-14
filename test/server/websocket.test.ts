@@ -184,4 +184,76 @@ describe("AplWebSocketServer (Phase 11)", () => {
 
     client.close();
   });
+
+  it("handles set_stall_timeout and import_sound client messages", async () => {
+    server = new AplWebSocketServer({ port: testPort });
+    const receivedMessages: AplClientMessage[] = [];
+
+    server.onClientMessage((msg) => {
+      receivedMessages.push(msg);
+    });
+
+    await server.start();
+
+    const client = new WebSocket(`ws://127.0.0.1:${testPort}`);
+    await new Promise<void>((r) => client.once("open", () => r()));
+
+    client.send(JSON.stringify({ type: "set_stall_timeout", seconds: 60 }));
+    client.send(
+      JSON.stringify({
+        type: "import_sound",
+        filePath: "/custom/sound.mp3",
+        tier: "stall",
+      }),
+    );
+
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(receivedMessages).toHaveLength(2);
+    expect(receivedMessages[0]).toEqual({ type: "set_stall_timeout", seconds: 60 });
+    expect(receivedMessages[1]).toEqual({
+      type: "import_sound",
+      filePath: "/custom/sound.mp3",
+      tier: "stall",
+    });
+
+    client.close();
+  });
+
+  it("automatically sanitizes paths in outgoing broadcast messages to prevent leaks", async () => {
+    server = new AplWebSocketServer({ port: testPort });
+    await server.start();
+
+    const client = new WebSocket(`ws://127.0.0.1:${testPort}`);
+    await new Promise<void>((r) => client.once("open", () => r()));
+
+    const received: AplWsServerMessage[] = [];
+    client.on("message", (data) => {
+      received.push(JSON.parse(data.toString()));
+    });
+
+    const home = process.env.HOME || "/Users/testuser";
+    const leakEvent: AgentEvent = {
+      agent: "claude-code",
+      type: "permission_required",
+      command: `cat ${home}/Desktop/secret.txt`,
+      timestamp: Date.now(),
+      metadata: {
+        transcriptPath: `${home}/.apl/session.jsonl`,
+      },
+    };
+
+    server.broadcast({ type: "event", event: leakEvent });
+    await new Promise((r) => setTimeout(r, 50));
+
+    const eventMsg = received.find((m) => m.type === "event");
+    expect(eventMsg).toBeDefined();
+    if (eventMsg && eventMsg.type === "event") {
+      expect(eventMsg.event.command).not.toContain(home);
+      expect(eventMsg.event.command).toBe("cat ~/Desktop/secret.txt");
+      expect(eventMsg.event.metadata?.transcriptPath).toBe("~/.apl/session.jsonl");
+    }
+
+    client.close();
+  });
 });

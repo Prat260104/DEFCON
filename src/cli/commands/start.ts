@@ -9,10 +9,12 @@ import { CodexAdapter } from "../../adapters/codex.js";
 import { SqliteEventStore } from "../../storage/sqliteStore.js";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { loadConfig, getDefaultInboxPath } from "../configManager.js";
+import { loadConfig, getDefaultInboxPath, saveConfig } from "../configManager.js";
 import { AplWebSocketServer } from "../../server/websocket.js";
 import { TrayManager } from "../../core/trayManager.js";
-import { resolveSoundForEvent, playAudio } from "../../notify/soundManager.js";
+import { resolveSoundForEvent, playAudio, importSoundFile } from "../../notify/soundManager.js";
+import { notify } from "../../notify/index.js";
+import { sanitizePath } from "../../core/pathSanitizer.js";
 import type { AgentEvent, RiskLevel } from "../../core/types.js";
 import type { SoundTier } from "../configManager.js";
 
@@ -29,7 +31,7 @@ export function createStartCommand(): Command {
       console.log("\n========================================================");
       console.log("  🛡️  Agent Permission Layer (APL) — Daemon Active");
       console.log("========================================================");
-      console.log(`  Inbox:         ${inboxPath}`);
+      console.log(`  Inbox:         ${sanitizePath(inboxPath)}`);
       console.log(`  Notifications: ${config.notifications.enabled ? "Enabled" : "Disabled"}`);
       console.log("  Press Ctrl+C to stop monitoring.\n");
 
@@ -176,6 +178,72 @@ export function createStartCommand(): Command {
           } else {
             await playAudio(soundName);
           }
+        } else if (msg.type === "set_stall_timeout") {
+          const sec = Number(msg.seconds);
+          if (sec > 0) {
+            stallTimer.updateStallAlertSeconds(sec);
+            config.stallAlertSeconds = sec;
+            saveConfig(config);
+            wsServer.broadcast({ type: "config_updated", key: "stallAlertSeconds", value: sec });
+            console.log(`\n  ⏱️  [config] Updated stall alert threshold to ${sec}s`);
+            notify({
+              agent: "DEFCON",
+              type: "permission_required",
+              riskLevel: "low",
+              command: `Stall alert threshold updated to ${sec}s`,
+              timestamp: Date.now(),
+            });
+          }
+        } else if (msg.type === "import_sound") {
+          const res = importSoundFile(msg.filePath, msg.name);
+          if (res.success && res.soundName) {
+            if (msg.tier && res.destPath) {
+              config.notifications = config.notifications || ({} as any);
+              config.notifications.customSounds = config.notifications.customSounds || {};
+              config.notifications.customSounds[msg.tier] = sanitizePath(res.destPath);
+              saveConfig(config);
+            }
+            wsServer.broadcast({
+              type: "sound_imported",
+              success: true,
+              soundName: res.soundName,
+              tier: msg.tier,
+            });
+            console.log(
+              `\n  🎵 [sound] Imported custom sound "${res.soundName}"${msg.tier ? ` for ${msg.tier}` : ""}`,
+            );
+            if (res.destPath) {
+              await playAudio(res.destPath);
+            }
+            notify({
+              agent: "DEFCON",
+              type: "permission_required",
+              riskLevel: "low",
+              command: `Loaded sound "${res.soundName}"${msg.tier ? ` for ${msg.tier}` : ""}`,
+              timestamp: Date.now(),
+            });
+          } else {
+            wsServer.broadcast({
+              type: "sound_imported",
+              success: false,
+              error: res.error ? sanitizePath(res.error) : undefined,
+            });
+            console.warn(`\n  ⚠️  [sound] Failed to import sound: ${sanitizePath(res.error)}`);
+          }
+        } else if (msg.type === "reset_sounds") {
+          if (config.notifications) {
+            config.notifications.customSounds = {};
+            saveConfig(config);
+          }
+          wsServer.broadcast({ type: "config_updated", key: "customSounds", value: {} });
+          console.log("\n  🔄 [sound] Reset all audio mappings to system defaults");
+          notify({
+            agent: "DEFCON",
+            type: "permission_required",
+            riskLevel: "low",
+            command: "All sound mappings reset to system defaults",
+            timestamp: Date.now(),
+          });
         }
       });
 

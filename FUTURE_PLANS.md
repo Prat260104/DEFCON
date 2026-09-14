@@ -13,8 +13,8 @@ The following table lists all planned features in priority order, ranked by impa
 | 1 | GitHub Actions CI/CD Pipeline | Infrastructure | 2 hours | **Shipped** (Multi-version matrix, 339 tests, Benchmark gate) |
 | 2 | Risk Classification Benchmark Harness | Quality Assurance | 3-4 hours | **Shipped** (100% F1, 100% Recall) |
 | 3 | CLI Audit Log Viewer (`defcon audit`) | Core CLI | 2-3 hours | **Shipped** (Filters, Relative Time, JSON/CSV RFC 4180) |
-| 4 | System Tray Custom Sound Importer & Tier Mapping | Desktop Tray | 2-3 hours | Planned |
-| 5 | System Tray Dynamic Stall Timeout Selector | Desktop Tray | 2 hours | Planned |
+| 4 | System Tray Custom Sound Importer & Tier Mapping | Desktop Tray | 2-3 hours | **Shipped** (Native file dialog, WebSocket protocol, live playback) |
+| 5 | System Tray Dynamic Stall Timeout Selector | Desktop Tray | 2 hours | **Shipped** (Menu presets, in-memory live rescheduling, config sync) |
 | 6 | Session Risk Analytics Report (`defcon report`) | Core CLI | 2-3 hours | Planned |
 | 7 | OWASP Agentic Security Mapping (`SECURITY.md`) | Documentation | 1-2 hours | Planned |
 | 8 | Terminal Demo Recording (asciinema / GIF) | Documentation | 1 hour | Planned |
@@ -99,7 +99,7 @@ defcon audit --export csv         # Output as CSV for spreadsheet analysis
 
 ## Phase: Native Desktop System Tray Enhancements
 
-### 4. System Tray Custom Sound Importer & Tier Mapping
+### 4. System Tray Custom Sound Importer & Tier Mapping (Shipped)
 
 **Goal:** Enable users to upload their custom audio assets directly through the OS menu bar / system tray companion and map them to specific risk tiers (Low, Medium, High, Stall Alert).
 
@@ -119,7 +119,7 @@ defcon audit --export csv         # Output as CSV for spreadsheet analysis
 
 ---
 
-### 5. System Tray Dynamic Stall Timeout Selector
+### 5. System Tray Dynamic Stall Timeout Selector (Shipped)
 
 **Goal:** Allow users to configure their stall alert threshold (e.g. 1 minute / 60 seconds instead of the default 35 seconds) directly from the menu bar system tray, with individual user settings persisted and applied in real time across the entire system.
 
