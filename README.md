@@ -294,8 +294,48 @@ defcon sound import <f>   # Import custom audio asset into ~/.apl/sounds/
 defcon sound set-tier <t> # Map a sound asset to a tier (low, medium, high, stall)
 defcon sound test         # Play audio preview for a specific tier or sound name
 defcon sound reset        # Reset all audio mappings to system defaults
-defcon history            # Display recent intercepted command audit entries
+defcon audit              # Display recent intercepted command audit entries
+defcon audit --risk high  # Filter audit events by risk tier (low, medium, high)
+defcon audit --since 1h   # Filter events newer than relative duration (15m, 1h, 24h)
+defcon audit --export csv # Export audit trail to RFC 4180 CSV (or --json)
+defcon history            # Backward-compatible alias for defcon audit
 defcon mcp                # Start standalone Model Context Protocol server
+```
+
+### Inspecting Audit Trails (`defcon audit`)
+
+DEFCON automatically audits all intercepted commands, agent states, timestamps, and deterministic risk tiers into a local SQLite database (`~/.apl/events.db`). You can inspect, filter, and export this audit log directly from your terminal:
+
+```bash
+# View recent 20 events with risk badges
+defcon audit
+
+# Filter by risk tier (low, medium, high)
+defcon audit --risk high
+
+# Filter by relative time horizon (e.g. 15m, 1h, 24h, 7d)
+defcon audit --since 1h
+
+# Filter by agent platform (claude-code, gemini-cli, antigravity, cline, kiro)
+defcon audit --agent antigravity
+
+# Machine-readable JSON output
+defcon audit -n 10 --json
+
+# RFC 4180 CSV export for spreadsheet analysis & reporting
+defcon audit --export csv > audit_trail.csv
+```
+
+**Terminal Preview:**
+```text
+  🛡️  DEFCON Audit Log (20 events) [Filtered: agent=antigravity]
+
+  TIME        RISK     AGENT        TYPE                 COMMAND
+  ──────────  ───────  ───────────  ───────────────────  ─────────────────────────────────────────────
+  06:16:03 PM  🟡 MED   antigravity  permission_required  tool:call_mcp_tool
+  06:15:51 PM  ⚪ UNKN  antigravity  completed            —
+  06:15:51 PM  🟡 MED   antigravity  permission_required  tool:view_file
+  11:58:27 AM  🟡 MED   antigravity  permission_required  "npx vitest run test/benchmark/benchmark.t...
 ```
 
 ---

@@ -12,13 +12,15 @@ The following table lists all planned features in priority order, ranked by impa
 |---|---|---|---|---|
 | 1 | GitHub Actions CI/CD Pipeline | Infrastructure | 2 hours | **Shipped** (Multi-version matrix, 339 tests, Benchmark gate) |
 | 2 | Risk Classification Benchmark Harness | Quality Assurance | 3-4 hours | **Shipped** (100% F1, 100% Recall) |
-| 3 | CLI Audit Log Viewer (`defcon audit`) | Core CLI | 2-3 hours | Planned |
-| 4 | Session Risk Analytics Report (`defcon report`) | Core CLI | 2-3 hours | Planned |
-| 5 | OWASP Agentic Security Mapping (`SECURITY.md`) | Documentation | 1-2 hours | Planned |
-| 6 | Terminal Demo Recording (asciinema / GIF) | Documentation | 1 hour | Planned |
-| 7 | Windsurf IDE MCP Verification | IDE Expansion | 3-4 hours | Planned |
-| 8 | JetBrains / WebStorm Plugin Architecture | IDE Expansion | Large | Deferred |
-| 9 | Centralized Enterprise Governance | Enterprise | Large | Deferred |
+| 3 | CLI Audit Log Viewer (`defcon audit`) | Core CLI | 2-3 hours | **Shipped** (Filters, Relative Time, JSON/CSV RFC 4180) |
+| 4 | System Tray Custom Sound Importer & Tier Mapping | Desktop Tray | 2-3 hours | Planned |
+| 5 | System Tray Dynamic Stall Timeout Selector | Desktop Tray | 2 hours | Planned |
+| 6 | Session Risk Analytics Report (`defcon report`) | Core CLI | 2-3 hours | Planned |
+| 7 | OWASP Agentic Security Mapping (`SECURITY.md`) | Documentation | 1-2 hours | Planned |
+| 8 | Terminal Demo Recording (asciinema / GIF) | Documentation | 1 hour | Planned |
+| 9 | Windsurf IDE MCP Verification | IDE Expansion | 3-4 hours | Planned |
+| 10 | JetBrains / WebStorm Plugin Architecture | IDE Expansion | Large | Deferred |
+| 11 | Centralized Enterprise Governance | Enterprise | Large | Deferred |
 
 ---
 
@@ -66,9 +68,11 @@ Median Evaluation Latency (p50): 1.54 µs (0.0015 ms)
 
 ## Phase: Core CLI Enhancements
 
-### 3. CLI Audit Log Viewer (`defcon audit`)
+### 3. CLI Audit Log Viewer (`defcon audit`) (Shipped)
 
 **Goal:** Expose the existing SQLite audit log through a structured CLI interface with filtering and machine-readable export.
+
+**Status:** Completed and tested in `src/cli/commands/audit.ts` and `test/cli/auditCommand.test.ts`.
 
 **Commands:**
 
@@ -82,17 +86,72 @@ defcon audit --export json        # Output as JSON for pipeline consumption
 defcon audit --export csv         # Output as CSV for spreadsheet analysis
 ```
 
-**Implementation:**
-- New command module at `src/cli/commands/audit.ts`.
-- SQL queries against existing `~/.apl/events.db` (no schema changes required).
-- Tabular output using formatted columns for terminal display.
-- Structured JSON/CSV export for CI/CD pipeline integration and automated reporting.
-
-**Why this matters:** Machine-readable output is an industry expectation for CLI tools used in automated workflows. The audit data already exists -- this feature surfaces it without any new data collection.
+**Delivered Implementation:**
+- New command module at `src/cli/commands/audit.ts` registered with alias `history` for 100% backward compatibility.
+- SQL queries against existing SQLite database with filtering on `risk_level`, `since`, `agent`, and `type`.
+- Tabular terminal output formatted with colored risk badges (`🔴 HIGH`, `🟡 MED`, `🟢 LOW`, `⚪ UNKN`), agent, event type, and truncated commands.
+- Relative duration parsing supporting `m`, `h`, `d`, `w` (e.g. `15m`, `1h`, `24h`, `7d`).
+- Structured JSON export (`--export json` / `--json`).
+- RFC 4180 compliant CSV export (`--export csv` / `--csv`) properly escaping commas, double quotes, and linebreaks.
+- Comprehensive unit, integration, and falsifiable manual CLI tests.
 
 ---
 
-### 4. Session Risk Analytics Report (`defcon report`)
+## Phase: Native Desktop System Tray Enhancements
+
+### 4. System Tray Custom Sound Importer & Tier Mapping
+
+**Goal:** Enable users to upload their custom audio assets directly through the OS menu bar / system tray companion and map them to specific risk tiers (Low, Medium, High, Stall Alert).
+
+**User Interaction Flow:**
+1. User clicks the DEFCON shield icon in the macOS menu bar / Windows system tray.
+2. Navigates to `Acoustic Alerts` -> `Upload Custom Sound...` (or `Choose Sound for Tier` -> `[High / Medium / Low / Stall]`).
+3. Native OS file picker dialog opens (filtered to `.wav`, `.mp3`, `.aiff`, `.ogg`).
+4. The selected audio file is copied into the user's local sound repository (`~/.apl/sounds/<filename>`).
+5. The mapping is persisted into `~/.apl/config.json` under `soundMap.<tier>`.
+6. A control message is dispatched over the loopback WebSocket (`ws://127.0.0.1:48123`) to the Node.js daemon, triggering `SoundManager.reloadMappings()` in real time without requiring a daemon restart.
+7. A confirmation audio preview is automatically triggered to confirm the asset was loaded.
+
+**Technical Architecture:**
+- **Tray Companion (`packages/desktop-tray` / Tauri Rust):** Uses `rfd` (Rusty File Dialog) or Tauri native file dialog plugin to prompt the user for an audio file.
+- **WebSocket Protocol:** Dispatches `{ "type": "config_update", "key": "soundMap.<tier>", "value": "<assetName>" }` to the Node.js daemon.
+- **Daemon Configuration Manager:** Atomically writes to `~/.apl/config.json` and invokes `soundManager.setCustomTierMapping(tier, assetName)`.
+
+---
+
+### 5. System Tray Dynamic Stall Timeout Selector
+
+**Goal:** Allow users to configure their stall alert threshold (e.g. 1 minute / 60 seconds instead of the default 35 seconds) directly from the menu bar system tray, with individual user settings persisted and applied in real time across the entire system.
+
+**User Interaction Flow:**
+1. User clicks the DEFCON shield icon in the menu bar.
+2. Opens the `Stall Alert Threshold` submenu:
+   ```text
+   DEFCON: Monitoring Active
+   ---------------------------------
+   Stall Alert Threshold  ▶  ( ) 20 seconds
+                             (•) 35 seconds (Default)
+                             ( ) 45 seconds
+                             ( ) 60 seconds (1 minute)
+                             ( ) 90 seconds (1.5 minutes)
+                             ( ) 120 seconds (2 minutes)
+                             ---
+                             [ Custom Seconds... ]
+   Acoustic Alerts        ▶
+   Audit Log Viewer...
+   ---------------------------------
+   Quit DEFCON
+   ```
+3. Selecting `60 seconds (1 minute)` updates the radio checkmark in the tray menu.
+4. The change is instantly written to `~/.apl/config.json` under `stallAlertSeconds: 60`.
+5. The daemon's `StallTimer` dynamically updates its in-memory check interval and timeout threshold without dropping or disrupting active agent monitoring sessions.
+6. The user receives a brief visual desktop notification: *"Stall alert timeout updated to 60s"*.
+
+**Why this matters:** Different developers work at different cadences. A user running complex multi-step builds or waiting on large model responses might prefer a relaxed 60s or 90s timeout to avoid premature acoustic alerts, while a fast-paced developer wants an aggressive 20s or 35s alert. Exposing this via the system tray companion makes DEFCON adapt seamlessly to every individual user's workflow.
+
+---
+
+### 6. Session Risk Analytics Report (`defcon report`)
 
 **Goal:** Generate a post-session summary from existing audit data to help developers understand their agent interaction patterns.
 

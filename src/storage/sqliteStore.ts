@@ -73,6 +73,11 @@ export class SqliteEventStore implements EventStore {
       params.push(options.riskLevel);
     }
 
+    if (options.type) {
+      conditions.push("type = ?");
+      params.push(options.type);
+    }
+
     if (options.since) {
       conditions.push("timestamp >= ?");
       params.push(options.since);

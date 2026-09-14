@@ -71,5 +71,6 @@ export interface EventQueryOptions {
   limit?: number;
   agent?: string;
   riskLevel?: RiskLevel;
+  type?: AgentEvent["type"];
   since?: number;
 }
