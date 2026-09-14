@@ -24,23 +24,37 @@
     "lint": "eslint src/ test/",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "benchmark": "tsx scripts/benchmark-accuracy.ts",
-    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\""
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prepack": "npm run build"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "ai-agent",
     "coding-agent",
     "permission",
     "risk-classification",
+    "defcon",
     "claude-code",
     "gemini-cli",
     "developer-tools",
     "notification"
   ],
-  "author": "",
+  "author": "Prateek Rai",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prat260104/DEFCON.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Prat260104/DEFCON/issues"
+  },
+  "homepage": "https://github.com/Prat260104/DEFCON#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "apl": "^0.1.15",
     "chokidar": "^4.0.0",
     "commander": "^13.0.0",
     "ws": "^8.21.3",

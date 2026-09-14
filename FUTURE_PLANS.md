@@ -31,7 +31,7 @@ The following table lists all planned features in priority order, ranked by impa
 **Status:** Completed in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml).
 
 **Pipeline Capabilities:**
-- Multi-version matrix running on Node.js 20.x and 22.x on `ubuntu-latest`.
+- Automated quality gate running on Node.js 22.x on `ubuntu-latest` (aligned with `node:sqlite` engine requirements).
 - Automated code style and formatting gate (`npm run format:check`).
 - Static code analysis (`npm run lint`).
 - Strict TypeScript verification (`npm run typecheck`).
@@ -50,15 +50,15 @@ The following table lists all planned features in priority order, ranked by impa
 **Status:** Completed and documented in [BENCHMARK.md](./BENCHMARK.md).
 
 **Delivered Capabilities:**
-- Ground-truth dataset (`test/benchmark/dataset.json`) with 267 curated real-world agent shell commands across 3 risk tiers + catastrophic blacklist patterns.
+- Ground-truth dataset (`test/benchmark/dataset.json`) with 271 curated real-world agent shell commands across 3 risk tiers + catastrophic blacklist patterns.
 - High-resolution benchmark evaluation script (`scripts/benchmark-accuracy.ts`) reporting per-tier Precision, Recall, F1-Score, and sub-microsecond latency. Supports CLI tables, `--json`, and `--markdown`.
 - Automated regression gate test (`test/benchmark/benchmark.test.ts`) with hard zero-false-negative safety invariant and ≥ 98% weighted F1 requirement.
 
 **Measured Results:**
 ```
-Dataset: 267 labeled commands
+Dataset: 271 labeled commands
 Weighted Macro-F1: 100.0%  |  Accuracy: 100.0%
-Blacklist Recall: 100.0% (32/32 catastrophic commands, 0 false negatives)
+Blacklist Recall: 100.0% (35/35 catastrophic commands, 0 false negatives)
 Median Evaluation Latency (p50): 1.54 µs (0.0015 ms)
 ```
 
