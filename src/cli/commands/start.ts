@@ -59,6 +59,7 @@ export function createStartCommand(): Command {
         whitelistSafetyTimeoutSeconds: config.whitelistSafetyTimeoutSeconds ?? 75,
         repeatAlertIntervalSeconds: config.repeatAlertIntervalSeconds ?? 60,
         maxRepeatAlerts: config.maxRepeatAlerts ?? 3,
+        config: config, // Pass config for custom sound resolution
         onStallAlert: async (event, elapsedMs, escalationLevel = 1) => {
           const stallSec = Math.round(elapsedMs / 1000);
           const isDrift = Boolean(event.metadata?.["isWhitelisted"]);

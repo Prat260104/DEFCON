@@ -1,5 +1,6 @@
 import type { AgentEvent } from "./types.js";
 import { notify } from "../notify/index.js";
+import type { AplConfig } from "../cli/configManager.js";
 
 export interface StallTimerOptions {
   /** Seconds to wait before firing alert for normal commands. Default: 35 seconds. */
@@ -10,6 +11,8 @@ export interface StallTimerOptions {
   repeatAlertIntervalSeconds?: number;
   /** Maximum number of recurring repeat alerts to fire after the initial alert. Default: 3. */
   maxRepeatAlerts?: number;
+  /** APL configuration for sound/notification customization. */
+  config?: AplConfig;
   /** Custom callback when stall alert fires. */
   onStallAlert?: (
     event: AgentEvent,
@@ -44,6 +47,7 @@ export class StallAlertTimer {
   private whitelistSafetyTimeoutMs: number;
   private repeatAlertIntervalMs: number;
   private maxRepeatAlerts: number;
+  private config?: AplConfig;
   private onStallAlert?: (
     event: AgentEvent,
     elapsedMs: number,
@@ -57,6 +61,7 @@ export class StallAlertTimer {
     this.repeatAlertIntervalMs = Math.max(1, options.repeatAlertIntervalSeconds ?? 60) * 1000;
     this.maxRepeatAlerts = Math.max(0, options.maxRepeatAlerts ?? 3);
     this.onStallAlert = options.onStallAlert;
+    this.config = options.config;
   }
 
   /**
@@ -180,7 +185,7 @@ export class StallAlertTimer {
     }
 
     // Fire the real OS notification & audio alarm asynchronously (non-blocking)
-    Promise.resolve(notify(stallEvent)).catch((err) => {
+    Promise.resolve(notify(stallEvent, this.config)).catch((err) => {
       console.error("[stallTimer] Failed to dispatch OS notification:", err);
     });
   }
