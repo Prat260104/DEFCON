@@ -61,8 +61,14 @@ jobs:
           cd packages/desktop-tray/src-tauri
           cargo build --release --target ${{ matrix.target }}
 
-      - name: Create binaries directory
+      - name: Create binaries directory (Unix)
+        if: matrix.os != 'windows-latest'
         run: mkdir -p packages/desktop-tray/binaries/${{ matrix.platform }}
+
+      - name: Create binaries directory (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          if not exist "packages\desktop-tray\binaries\${{ matrix.platform }}" mkdir "packages\desktop-tray\binaries\${{ matrix.platform }}"
 
       - name: Copy binary (Unix)
         if: matrix.os != 'windows-latest'
