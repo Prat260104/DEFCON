@@ -2,6 +2,10 @@ import { spawn, execSync, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync, statSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { homedir } from "node:os";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface TrayManagerOptions {
   binaryPath?: string;
@@ -43,8 +47,16 @@ export class TrayManager {
     const platformDir =
       platform === "darwin" ? "macos" : platform === "win32" ? "windows" : "linux";
 
+    // Calculate package root from this file's location
+    // This file is at: dist/core/trayManager.js
+    // Package root is: ../../ from dist/core/
+    const packageRoot = resolve(__dirname, "../..");
+
     const candidates = [
       // Pre-compiled binaries in package (for npm distribution)
+      // Try package root first (works for global installations)
+      resolve(packageRoot, `packages/desktop-tray/binaries/${platformDir}/${binaryName}`),
+      // Then try from cwd (for local development)
       resolve(cwd, `packages/desktop-tray/binaries/${platformDir}/${binaryName}`),
       // Release build (local development)
       resolve(cwd, `packages/desktop-tray/src-tauri/target/release/${binaryName}`),
