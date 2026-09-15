@@ -37,11 +37,12 @@ export class TrayManager {
   resolveTrayBinaryPath(): string | null {
     const cwd = process.cwd();
     const platform = process.platform;
-    
+
     // Platform-specific binary names
-    const binaryName = platform === 'win32' ? 'defcon-tray.exe' : 'defcon-tray';
-    const platformDir = platform === 'darwin' ? 'macos' : (platform === 'win32' ? 'windows' : 'linux');
-    
+    const binaryName = platform === "win32" ? "defcon-tray.exe" : "defcon-tray";
+    const platformDir =
+      platform === "darwin" ? "macos" : platform === "win32" ? "windows" : "linux";
+
     const candidates = [
       // Pre-compiled binaries in package (for npm distribution)
       resolve(cwd, `packages/desktop-tray/binaries/${platformDir}/${binaryName}`),
@@ -52,7 +53,7 @@ export class TrayManager {
       // Distributed bundle
       resolve(cwd, `dist/tray/${binaryName}`),
       // Global installation
-      platform === 'win32' 
+      platform === "win32"
         ? "C:\\Program Files\\DEFCON\\defcon-tray.exe"
         : "/usr/local/bin/defcon-tray",
     ];

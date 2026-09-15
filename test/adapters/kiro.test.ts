@@ -140,7 +140,7 @@ describe("KiroAdapter Live GUI Watcher", () => {
 
     expect(events.length).toBeGreaterThanOrEqual(1);
     // Find the permission_required event (may not always be first due to timing)
-    const permEvent = events.find(e => e.type === "permission_required");
+    const permEvent = events.find((e) => e.type === "permission_required");
     expect(permEvent).toBeDefined();
     expect(permEvent!.agent).toBe("kiro");
     expect(permEvent!.command).toBe("git reset --hard HEAD~1");
@@ -164,7 +164,7 @@ describe("KiroAdapter Live GUI Watcher", () => {
 
     expect(events.length).toBeGreaterThanOrEqual(2);
     // Find the completed event
-    const completedEvent = events.find(e => e.type === "completed");
+    const completedEvent = events.find((e) => e.type === "completed");
     expect(completedEvent).toBeDefined();
 
     await adapter.stop();
