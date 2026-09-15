@@ -1,7 +1,7 @@
 # Agent Permission Layer (DEFCON)
 
 [![CI](https://github.com/Prat260104/DEFCON/actions/workflows/ci.yml/badge.svg)](https://github.com/Prat260104/DEFCON/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-370%20passed-brightgreen.svg)](https://github.com/Prat260104/DEFCON)
+[![Tests](https://img.shields.io/badge/tests-388%20passed-brightgreen.svg)](https://github.com/Prat260104/DEFCON)
 [![Benchmark F1](https://img.shields.io/badge/risk%20engine%20f1-100%25-blue.svg)](./BENCHMARK.md)
 [![Recall](https://img.shields.io/badge/blacklist%20recall-100%25-brightgreen.svg)](./BENCHMARK.md)
 [![Evaluation Latency](https://img.shields.io/badge/eval%20latency-1.54%C2%B5s-orange.svg)](./BENCHMARK.md)
@@ -299,6 +299,11 @@ defcon audit --risk high  # Filter audit events by risk tier (low, medium, high)
 defcon audit --since 1h   # Filter events newer than relative duration (15m, 1h, 24h)
 defcon audit --export csv # Export audit trail to RFC 4180 CSV (or --json)
 defcon history            # Backward-compatible alias for defcon audit
+defcon report             # Generate session risk analytics and statistical summary
+defcon report --since 7d  # Aggregate metrics across custom time horizon
+defcon report --agent <a> # Filter analytics by specific agent (kiro, antigravity, etc.)
+defcon report --risk high # Filter by risk tier (low, medium, high)
+defcon report --json      # Machine-readable JSON output for CI/auditing pipelines
 defcon mcp                # Start standalone Model Context Protocol server
 ```
 
@@ -337,6 +342,83 @@ defcon audit --export csv > audit_trail.csv
   06:15:51 PM  🟡 MED   antigravity  permission_required  tool:view_file
   11:58:27 AM  🟡 MED   antigravity  permission_required  "npx vitest run test/benchmark/benchmark.t...
 ```
+
+### Generating Session Analytics Reports (`defcon report`)
+
+The `defcon report` command provides statistical analysis and aggregated metrics across intercepted agent sessions. This feature enables developers to understand interaction patterns, identify performance bottlenecks, and generate compliance reports for security audits.
+
+```bash
+# Basic report (default: last 24 hours)
+defcon report
+
+# Custom time window
+defcon report --since 7d     # Last 7 days
+defcon report --since 30d    # Last 30 days
+defcon report --since 1h     # Last hour
+
+# Filter by agent platform
+defcon report --agent kiro
+defcon report --agent antigravity
+
+# Filter by risk tier
+defcon report --risk high
+defcon report --risk medium
+
+# Machine-readable JSON for CI pipelines
+defcon report --json
+
+# Limit number of top commands shown
+defcon report --limit 10
+```
+
+**Terminal Preview:**
+```text
+  🛡️  DEFCON Session Risk Analytics Report
+
+  Period: 09/08/2026, 12:00:00 — 09/15/2026, 12:00:00 (Last 7 days)
+  ════════════════════════════════════════════════════════════════
+
+  📊 Overview
+  Total Commands Intercepted:   142
+  Unique Sessions:               18
+  Active Agents:                 3 (kiro, antigravity, claude-code)
+
+  🎯 Risk Distribution
+    🔴 High:       8  ( 5.6%)
+    🟡 Medium:    45  (31.7%)
+    🟢 Low:       89  (62.7%)
+
+  ⏱️  Performance Metrics
+    Average Approval Time:      4.8s
+    Median Approval Time:       2.1s
+    95th Percentile:           12.4s
+    Longest Stall:             48.2s
+
+  🏆 Top Commands (by frequency)
+    1. tool:call_mcp_tool              28 events
+    2. npm test                         12 events
+    3. git status                       11 events
+    4. tool:view_file                    9 events
+    5. git commit -m "..."               8 events
+
+  📈 Per-Agent Breakdown
+    kiro:          68 commands (47.9%)
+    antigravity:   52 commands (36.6%)
+    claude-code:   22 commands (15.5%)
+  ════════════════════════════════════════════════════════════════
+```
+
+**Use Cases:**
+
+- **Post-Session Analysis**: Understand which commands triggered the most interruptions during a coding session.
+- **Performance Optimization**: Identify commands with long approval times that may benefit from whitelisting.
+- **Security Auditing**: Generate compliance reports showing risk tier distributions and high-risk command frequency.
+- **Team Metrics**: Track agent usage patterns across development teams for workflow optimization.
+- **CI/CD Integration**: Export JSON reports for automated security scanning and trend analysis.
+
+**Analytics Engine:**
+
+The report command executes optimized SQL aggregation queries directly against the local SQLite audit database (`~/.apl/events.db`). All metrics are computed locally with no external dependencies, maintaining DEFCON's zero-cloud architecture.
 
 ---
 
@@ -527,14 +609,20 @@ DEFCON is engineered around strict local-first security guarantees:
 
 ## Roadmap
 
-Refer to [FUTURE_PLANS.md](FUTURE_PLANS.md) for detailed technical specifications, architecture blueprints, and priority rankings:
+Refer to [FUTURE_PLANS.md](FUTURE_PLANS.md) for detailed technical specifications, architecture blueprints, and priority rankings.
 
-- **CI/CD Quality Gates:** GitHub Actions automated pipeline enforcing typecheck, linting, and full 25-suite Vitest test runs on every PR/push.
-- **Risk Classification Benchmark Harness:** Quantitative precision/recall measurement against labeled command datasets to establish empirical accuracy baselines.
-- **CLI Audit Log Viewer (`defcon audit`):** Direct terminal querying of SQLite audit store with filtering (`--risk`, `--since`) and structured JSON/CSV export.
-- **OWASP Agentic Security Mapping:** Formal alignment document (`SECURITY.md`) mapping DEFCON controls to the OWASP Top 10 for Agentic Applications.
-- **Session Risk Analytics (`defcon report`):** Post-session activity reporting summarizing total interceptions, stall durations, and risk tier distributions.
-- **Extended IDE & Agent Support:** Windsurf IDE MCP verification.
+**Completed Features:**
+
+- **CI/CD Quality Gates**: GitHub Actions automated pipeline enforcing typecheck, linting, and full 388-suite Vitest test runs on every PR/push.
+- **Risk Classification Benchmark Harness**: Quantitative precision/recall measurement against labeled command datasets achieving 100% F1 score.
+- **CLI Audit Log Viewer (`defcon audit`)**: Direct terminal querying of SQLite audit store with filtering by risk, time, and agent, plus structured JSON/CSV export.
+- **Session Risk Analytics (`defcon report`)**: Post-session activity reporting with statistical summaries, approval time analysis, risk distributions, and top command frequency metrics.
+- **OWASP Agentic Security Mapping**: Formal alignment document ([SECURITY.md](SECURITY.md)) mapping DEFCON controls to the OWASP Top 10 for Agentic Applications.
+
+**In Progress:**
+
+- **Extended IDE & Agent Support**: Windsurf IDE MCP verification.
+- **Terminal Demo Recording**: Interactive terminal recording showcasing full lifecycle.
 
 ---
 
