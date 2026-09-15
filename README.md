@@ -33,6 +33,7 @@ Local-first safety infrastructure and real-time stall detection for autonomous A
   - [Installation](#installation)
   - [Quick Setup](#quick-setup)
   - [Running the Daemon](#running-the-daemon)
+- [Troubleshooting](#troubleshooting)
 - [Command Line Interface](#command-line-interface)
 - [Configuration Reference](#configuration-reference)
 - [Adapter Integration Specifications](#adapter-integration-specifications)
@@ -282,6 +283,125 @@ defcon start
 ```
 
 This single command launches the event bus, adapter watchers, loopback WebSocket server, and the native desktop system tray companion simultaneously.
+
+---
+
+## Troubleshooting
+
+### Command Not Found After Installation
+
+If you encounter `command not found: defcon` or `command not found: apl` after running `npm install -g agent-permission-layer`, this typically indicates that npm's global binary directory is not in your system PATH.
+
+#### Quick Fix
+
+**Option 1: Add npm bin to PATH (Recommended)**
+
+```bash
+# Check your npm global bin path
+npm config get prefix
+
+# Add to PATH temporarily (current session)
+export PATH="$(npm config get prefix)/bin:$PATH"
+
+# Test the command
+defcon --version
+```
+
+To make this permanent, add the export line to your shell configuration file:
+
+```bash
+# For zsh (macOS default)
+echo 'export PATH="$(npm config get prefix)/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+
+# For bash
+echo 'export PATH="$(npm config get prefix)/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Option 2: Reset npm to Default Location**
+
+If you prefer to use the default npm configuration:
+
+```bash
+# Uninstall the package
+npm uninstall -g agent-permission-layer
+
+# Reset npm prefix to default
+npm config delete prefix
+
+# Reinstall
+npm install -g agent-permission-layer
+
+# Verify installation
+defcon --version
+```
+
+#### Verify Installation
+
+After applying the fix, verify that the binaries are accessible:
+
+```bash
+# Check binary locations
+which defcon
+which apl
+which apl-mcp
+
+# Test basic commands
+defcon --version
+defcon status
+```
+
+### Other Common Issues
+
+**Issue: Permission Denied During Installation**
+
+If you encounter `EACCES` permission errors:
+
+```bash
+# Option 1: Use a version manager (recommended)
+# Install nvm: https://github.com/nvm-sh/nvm
+# Then reinstall Node.js through nvm
+
+# Option 2: Change npm's default directory
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+export PATH=~/.npm-global/bin:$PATH
+```
+
+**Issue: Daemon Won't Start**
+
+If `defcon start` fails to launch:
+
+1. Check if port 48123 is already in use:
+   ```bash
+   lsof -i :48123
+   ```
+
+2. Verify Node.js version (requires 22.0.0 or higher):
+   ```bash
+   node --version
+   ```
+
+3. Check for existing processes:
+   ```bash
+   ps aux | grep defcon
+   ```
+
+**Issue: Tray Icon Not Appearing**
+
+The desktop tray companion requires the Rust-compiled binary. If the icon doesn't appear:
+
+1. Verify tray binary exists:
+   ```bash
+   ls -la $(npm config get prefix)/lib/node_modules/agent-permission-layer/packages/desktop-tray/
+   ```
+
+2. Check system tray is enabled (macOS: System Preferences → Control Center → Menu Bar)
+
+3. Terminal-only mode still works without the tray icon
+
+For additional support, please open an issue on [GitHub](https://github.com/Prat260104/DEFCON/issues).
 
 ---
 
