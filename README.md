@@ -1,5 +1,7 @@
 # Agent Permission Layer (DEFCON)
 
+[![NPM Version](https://img.shields.io/npm/v/agent-permission-layer)](https://www.npmjs.com/package/agent-permission-layer)
+[![NPM Downloads](https://img.shields.io/npm/dm/agent-permission-layer)](https://www.npmjs.com/package/agent-permission-layer)
 [![CI](https://github.com/Prat260104/DEFCON/actions/workflows/ci.yml/badge.svg)](https://github.com/Prat260104/DEFCON/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-388%20passed-brightgreen.svg)](https://github.com/Prat260104/DEFCON)
 [![Benchmark F1](https://img.shields.io/badge/risk%20engine%20f1-100%25-blue.svg)](./BENCHMARK.md)
@@ -231,10 +233,16 @@ npx vitest run test/benchmark/benchmark.test.ts
 
 ### Installation
 
-Clone the repository, install dependencies, and compile:
+**Global Installation (Recommended):**
 
 ```bash
-# 1. Clone repository and install dependencies
+npm install -g agent-permission-layer
+```
+
+**Or from source:**
+
+```bash
+# Clone repository and install dependencies
 git clone https://github.com/Prat260104/DEFCON.git
 cd DEFCON
 npm install
