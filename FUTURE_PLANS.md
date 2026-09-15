@@ -10,9 +10,11 @@ The following table lists the prioritized features on our active roadmap:
 
 | Priority | Feature | Category | Target Output | Status |
 |---|---|---|---|---|
-| 1 | **Session Risk Analytics Report (`defcon report`)** | Core CLI | Aggregation queries, statistical summaries (approval time, longest stalls), `--json` | **Next Up (Tomorrow)** |
-| 2 | **OWASP Agentic Security Mapping (`SECURITY.md`)** | Documentation & Governance | Formal alignment matrix with OWASP Top 10 for Agentic Applications (2026 Edition) | **Next Up (Tomorrow)** |
+| 1 | **Session Risk Analytics Report (`defcon report`)** | Core CLI | Aggregation queries, statistical summaries (approval time, longest stalls), `--json` | **COMPLETE** ✓ |
+| 2 | **OWASP Agentic Security Mapping (`SECURITY.md`)** | Documentation & Governance | Formal alignment matrix with OWASP Top 10 for Agentic Applications (2026 Edition) | **COMPLETE** ✓ |
 | 3 | **Terminal Demo Recording** | Documentation | Embedded interactive terminal recording / GIF showcasing full lifecycle | Backlog |
+
+**Note**: Priorities 1 and 2 completed as of September 15, 2026. The project is now feature-complete for v1.0 release.
 
 ---
 
