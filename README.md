@@ -719,8 +719,8 @@ The system tray companion (`packages/desktop-tray`) is implemented as an ultra-c
 - **Zero-Window Design:** Operates with no webview or DOM processes (`frontendDist: null`), minimizing resident memory footprint (~25 MB).
 - **State Synchronization:** Subscribes to local loopback WebSocket frames (`ws://127.0.0.1:48123`) emitted by the daemon on every canonical event bus transition.
 - **Protocol Schema:**
-  - Inbound frames received from daemon: `init`, `state`, `event`, `stall`, `shutdown_ack`, `pong`.
-  - Outbound frames sent to daemon: `shutdown`, `test_sound`, `ping`.
+  - **Inbound frames** received from daemon: `init`, `state`, `event`, `stall`, `config_updated`, `sound_imported`, `shutdown_ack`, `pong`.
+  - **Outbound frames** sent to daemon: `shutdown`, `test_sound`, `set_stall_timeout`, `import_sound`, `reset_sounds`, `ping`.
 - **Shutdown Handshake Protocol:**
   1. User selects "Quit DEFCON" from the system menu.
   2. Companion transmits `{"type": "shutdown"}` over WebSocket.
