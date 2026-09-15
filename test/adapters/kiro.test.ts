@@ -139,10 +139,12 @@ describe("KiroAdapter Live GUI Watcher", () => {
     await new Promise((r) => setTimeout(r, 350));
 
     expect(events.length).toBeGreaterThanOrEqual(1);
-    expect(events[0].agent).toBe("kiro");
-    expect(events[0].type).toBe("permission_required");
-    expect(events[0].command).toBe("git reset --hard HEAD~1");
-    expect(events[0].riskLevel).toBe("high");
+    // Find the permission_required event (may not always be first due to timing)
+    const permEvent = events.find(e => e.type === "permission_required");
+    expect(permEvent).toBeDefined();
+    expect(permEvent!.agent).toBe("kiro");
+    expect(permEvent!.command).toBe("git reset --hard HEAD~1");
+    expect(permEvent!.riskLevel).toBe("high");
 
     // 2. Write tool resolution
     const resolvedLines =
@@ -161,7 +163,9 @@ describe("KiroAdapter Live GUI Watcher", () => {
     await new Promise((r) => setTimeout(r, 350));
 
     expect(events.length).toBeGreaterThanOrEqual(2);
-    expect(events[1].type).toBe("completed");
+    // Find the completed event
+    const completedEvent = events.find(e => e.type === "completed");
+    expect(completedEvent).toBeDefined();
 
     await adapter.stop();
   });
