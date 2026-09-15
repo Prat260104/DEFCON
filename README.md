@@ -282,7 +282,13 @@ Start the foreground monitoring process:
 defcon start
 ```
 
-This single command launches the event bus, adapter watchers, loopback WebSocket server, and the native desktop system tray companion simultaneously.
+This command launches the event bus, adapter watchers, loopback WebSocket server, and (on macOS) the native desktop system tray companion.
+
+**Platform Notes:**
+- **macOS**: Includes system tray icon in menu bar
+- **Windows/Linux**: Runs in terminal-only mode (full functionality, no tray icon)
+
+All core features work identically across platforms via the CLI.
 
 ---
 
@@ -390,16 +396,34 @@ If `defcon start` fails to launch:
 
 **Issue: Tray Icon Not Appearing**
 
-The desktop tray companion requires the Rust-compiled binary. If the icon doesn't appear:
+The desktop tray companion requires platform-specific Rust-compiled binaries.
 
-1. Verify tray binary exists:
-   ```bash
-   ls -la $(npm config get prefix)/lib/node_modules/agent-permission-layer/packages/desktop-tray/
-   ```
+**Platform Support:**
+- ✅ **macOS**: Fully supported - tray icon appears in menu bar
+- ⚠️  **Windows**: Terminal-only mode (tray binary not pre-compiled)
+- ⚠️  **Linux**: Terminal-only mode (tray binary not pre-compiled)
 
-2. Check system tray is enabled (macOS: System Preferences → Control Center → Menu Bar)
+**Terminal-only mode** provides full functionality except the visual tray icon:
+- ✅ All CLI commands work
+- ✅ Daemon runs normally
+- ✅ Risk detection active
+- ✅ Audit logging functional
+- ✅ All features available via terminal
 
-3. Terminal-only mode still works without the tray icon
+**Building Tray for Windows/Linux (Advanced Users):**
+
+If you want the tray icon on Windows/Linux and have Rust installed:
+
+```bash
+# Install Rust from https://rustup.rs/ first
+cd $(npm config get prefix)/lib/node_modules/agent-permission-layer
+npm run build:tray
+
+# Restart daemon
+defcon start
+```
+
+**Note**: Most users don't need the tray icon. The terminal interface provides complete access to all features.
 
 For additional support, please open an issue on [GitHub](https://github.com/Prat260104/DEFCON/issues).
 

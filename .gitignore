@@ -9,6 +9,8 @@ build/
 out/
 target/
 **/target/
+# But keep pre-compiled binaries for distribution
+!packages/desktop-tray/binaries/**
 **/gen/
 **/*.rs.bk
 *.vsix

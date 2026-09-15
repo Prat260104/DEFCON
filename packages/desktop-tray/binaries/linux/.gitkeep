@@ -1,0 +1,2 @@
+# Linux binary will be built by GitHub Actions
+# Manual build: cargo build --release --target x86_64-unknown-linux-gnu

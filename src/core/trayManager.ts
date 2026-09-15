@@ -32,18 +32,29 @@ export class TrayManager {
 
   /**
    * Resolve path to the compiled Tauri/Rust tray binary.
+   * Supports macOS, Windows, and Linux platforms.
    */
   resolveTrayBinaryPath(): string | null {
     const cwd = process.cwd();
+    const platform = process.platform;
+    
+    // Platform-specific binary names
+    const binaryName = platform === 'win32' ? 'defcon-tray.exe' : 'defcon-tray';
+    const platformDir = platform === 'darwin' ? 'macos' : (platform === 'win32' ? 'windows' : 'linux');
+    
     const candidates = [
-      // Release build
-      resolve(cwd, "packages/desktop-tray/src-tauri/target/release/defcon-tray"),
-      // Debug build
-      resolve(cwd, "packages/desktop-tray/src-tauri/target/debug/defcon-tray"),
+      // Pre-compiled binaries in package (for npm distribution)
+      resolve(cwd, `packages/desktop-tray/binaries/${platformDir}/${binaryName}`),
+      // Release build (local development)
+      resolve(cwd, `packages/desktop-tray/src-tauri/target/release/${binaryName}`),
+      // Debug build (local development)
+      resolve(cwd, `packages/desktop-tray/src-tauri/target/debug/${binaryName}`),
       // Distributed bundle
-      resolve(cwd, "dist/tray/defcon-tray"),
+      resolve(cwd, `dist/tray/${binaryName}`),
       // Global installation
-      "/usr/local/bin/defcon-tray",
+      platform === 'win32' 
+        ? "C:\\Program Files\\DEFCON\\defcon-tray.exe"
+        : "/usr/local/bin/defcon-tray",
     ];
 
     let newestCandidate: string | null = null;
