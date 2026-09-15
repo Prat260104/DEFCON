@@ -12,6 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
@@ -42,7 +43,18 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            packages/desktop-tray/src-tauri/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build Tray Binary
         run: |
@@ -52,10 +64,16 @@ jobs:
       - name: Create binaries directory
         run: mkdir -p packages/desktop-tray/binaries/${{ matrix.platform }}
 
-      - name: Copy binary
+      - name: Copy binary (Unix)
+        if: matrix.os != 'windows-latest'
         run: |
           cp packages/desktop-tray/src-tauri/target/${{ matrix.target }}/release/${{ matrix.artifact }} \
              packages/desktop-tray/binaries/${{ matrix.platform }}/${{ matrix.artifact }}
+             
+      - name: Copy binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          copy packages\desktop-tray\src-tauri\target\${{ matrix.target }}\release\${{ matrix.artifact }} packages\desktop-tray\binaries\${{ matrix.platform }}\${{ matrix.artifact }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

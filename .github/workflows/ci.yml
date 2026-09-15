@@ -44,8 +44,11 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-      - name: Run Vitest test suite (339 tests)
+      - name: Run Vitest test suite (388 tests)
         run: npm test -- --reporter=verbose
+        env:
+          # Tray binary not required for tests
+          CI: true
 
       - name: Execute Risk Engine Benchmark & Regression Gate
         run: npm run benchmark
