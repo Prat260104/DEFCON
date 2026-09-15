@@ -282,11 +282,12 @@ Start the foreground monitoring process:
 defcon start
 ```
 
-This command launches the event bus, adapter watchers, loopback WebSocket server, and (on macOS) the native desktop system tray companion.
+This command launches the event bus, adapter watchers, loopback WebSocket server, and the native desktop system tray companion (available on macOS, Windows, and Linux).
 
 **Platform Notes:**
-- **macOS**: Includes system tray icon in menu bar
-- **Windows/Linux**: Runs in terminal-only mode (full functionality, no tray icon)
+- **macOS**: System tray icon appears in menu bar
+- **Windows**: System tray icon appears in taskbar notification area
+- **Linux**: System tray icon appears in system tray (requires compatible desktop environment)
 
 All core features work identically across platforms via the CLI.
 
@@ -400,30 +401,10 @@ The desktop tray companion requires platform-specific Rust-compiled binaries.
 
 **Platform Support:**
 - ✅ **macOS**: Fully supported - tray icon appears in menu bar
-- ⚠️  **Windows**: Terminal-only mode (tray binary not pre-compiled)
-- ⚠️  **Linux**: Terminal-only mode (tray binary not pre-compiled)
+- ✅ **Windows**: Fully supported - tray icon appears in system taskbar
+- ✅ **Linux**: Fully supported - tray icon appears in system tray
 
-**Terminal-only mode** provides full functionality except the visual tray icon:
-- ✅ All CLI commands work
-- ✅ Daemon runs normally
-- ✅ Risk detection active
-- ✅ Audit logging functional
-- ✅ All features available via terminal
-
-**Building Tray for Windows/Linux (Advanced Users):**
-
-If you want the tray icon on Windows/Linux and have Rust installed:
-
-```bash
-# Install Rust from https://rustup.rs/ first
-cd $(npm config get prefix)/lib/node_modules/agent-permission-layer
-npm run build:tray
-
-# Restart daemon
-defcon start
-```
-
-**Note**: Most users don't need the tray icon. The terminal interface provides complete access to all features.
+All three platforms include pre-compiled binaries in the NPM package. The tray companion automatically detects your platform and uses the appropriate binary.
 
 For additional support, please open an issue on [GitHub](https://github.com/Prat260104/DEFCON/issues).
 
