@@ -31,7 +31,7 @@ describe("formatNotification", () => {
       timestamp: Date.now(),
     };
 
-    const notif = formatNotification(event);
+    const notif = formatNotification(event, defaultConfig);
     expect(notif.title).toBe("APL: claude-code");
     expect(notif.subtitle).toContain("LOW RISK");
     expect(notif.body).toBe("git status");
@@ -46,7 +46,7 @@ describe("formatNotification", () => {
       timestamp: Date.now(),
     };
 
-    const notif = formatNotification(event);
+    const notif = formatNotification(event, defaultConfig);
     expect(notif.title).toBe("APL: gemini-cli");
     expect(notif.subtitle).toContain("MEDIUM RISK");
     expect(notif.body).toContain("waiting for approval");
