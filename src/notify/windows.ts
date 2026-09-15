@@ -33,8 +33,18 @@ try {
   ${
     soundFilePath
       ? `if (Test-Path '${soundFilePath.replace(/'/g, "''")}') {
-           $player = New-Object System.Media.SoundPlayer '${soundFilePath.replace(/'/g, "''")}'
-           $player.Play()
+           $ext = [System.IO.Path]::GetExtension('${soundFilePath.replace(/'/g, "''")}').ToLower()
+           if ($ext -eq '.wav') {
+             # Use SoundPlayer for WAV files
+             $player = New-Object System.Media.SoundPlayer '${soundFilePath.replace(/'/g, "''")}'
+             $player.PlaySync()
+           } else {
+             # Use Windows Media Player COM for MP3/other formats
+             $player = New-Object -ComObject WMPlayer.OCX
+             $player.URL = '${soundFilePath.replace(/'/g, "''")}'
+             $player.controls.play()
+             Start-Sleep -Milliseconds 100
+           }
          } else {
            [System.Media.SystemSounds]::Exclamation.Play()
          }`
