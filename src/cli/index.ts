@@ -7,6 +7,7 @@ import { createStatusCommand } from "./commands/status.js";
 import { createAgentsCommand } from "./commands/agents.js";
 import { createConfigCommand } from "./commands/config.js";
 import { createAuditCommand } from "./commands/audit.js";
+import { createReportCommand } from "./commands/report.js";
 import { createMcpCommand } from "./commands/mcp.js";
 import { createSetupCommand } from "./commands/setup.js";
 import { createSoundCommand } from "./commands/sound.js";
@@ -29,6 +30,7 @@ program.addCommand(createStatusCommand());
 program.addCommand(createAgentsCommand());
 program.addCommand(createConfigCommand());
 program.addCommand(createAuditCommand());
+program.addCommand(createReportCommand());
 program.addCommand(createMcpCommand());
 program.addCommand(createSoundCommand());
 
