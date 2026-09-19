@@ -10,7 +10,12 @@ import { getDefaultSoundsDir, type AplConfig, type SoundTier } from "../cli/conf
  */
 export function expandTildePath(p: string): string {
   if (!p || typeof p !== "string") return "";
+  // Handle Unix-style ~/
   if (p.startsWith("~/") || p === "~") {
+    return join(homedir(), p.slice(1));
+  }
+  // Handle Windows-style ~\
+  if (p.startsWith("~\\") || (p === "~" && process.platform === "win32")) {
     return join(homedir(), p.slice(1));
   }
   return p;
@@ -396,22 +401,45 @@ export async function playAudio(filePathOrBuiltin: string): Promise<boolean> {
         }
       });
     } else if (platform === "win32") {
-      // Windows audio playback using PowerShell SoundPlayer / MediaPlayer
-      const escapedPath = targetPath.replace(/'/g, "''");
+      // Windows audio playback using WPF MediaPlayer (.NET) with fallback to SoundPlayer
+      const normalizedPath = targetPath.replace(/\\/g, "/");
+      const escapedPath = normalizedPath.replace(/'/g, "''");
       const psScript = existsSync(targetPath)
         ? `try {
-             Add-Type -AssemblyName PresentationCore
-             $player = New-Object System.Windows.Media.MediaPlayer
-             $player.Open([System.Uri]::new('${escapedPath}'))
-             $player.Play()
-             Start-Sleep -Milliseconds 1500
-           } catch {
-             try {
+             $ext = [System.IO.Path]::GetExtension('${escapedPath}').ToLower()
+             
+             if ($ext -eq '.wav') {
+               # WAV: Use SoundPlayer (reliable, synchronous)
                $sp = New-Object System.Media.SoundPlayer '${escapedPath}'
                $sp.PlaySync()
-             } catch {
-               [System.Media.SystemSounds]::Exclamation.Play()
+             } else {
+               # MP3/WMA/other: Use WPF MediaPlayer
+               Add-Type -AssemblyName PresentationCore
+               $player = New-Object System.Windows.Media.MediaPlayer
+               $player.Open([System.Uri]::new('${escapedPath}'))
+               $player.Play()
+               
+               # Wait for media to load
+               Start-Sleep -Milliseconds 300
+               $timeout = 0
+               while ($player.NaturalDuration.HasTimeSpan -eq $false -and $timeout -lt 15) {
+                 Start-Sleep -Milliseconds 100
+                 $timeout++
+               }
+               
+               # Keep script alive while playing
+               if ($player.NaturalDuration.HasTimeSpan) {
+                 $duration = $player.NaturalDuration.TimeSpan.TotalMilliseconds
+                 if ($duration -gt 0 -and $duration -lt 10000) {
+                   Start-Sleep -Milliseconds $duration
+                 } else {
+                   Start-Sleep -Milliseconds 1500
+                 }
+               }
              }
+           } catch {
+             # Fallback to system sound
+             [System.Media.SystemSounds]::Exclamation.Play()
            }`
         : `[System.Media.SystemSounds]::Exclamation.Play()`;
 
