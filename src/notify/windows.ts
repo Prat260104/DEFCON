@@ -43,7 +43,14 @@ try {
              $player = New-Object -ComObject WMPlayer.OCX
              $player.URL = '${soundFilePath.replace(/'/g, "''")}'
              $player.controls.play()
-             Start-Sleep -Milliseconds 100
+             # Wait for audio to actually start playing before script exits
+             Start-Sleep -Milliseconds 500
+             # Poll until playback state indicates audio has started
+             $timeout = 0
+             while ($player.playState -ne 3 -and $timeout -lt 10) {
+               Start-Sleep -Milliseconds 100
+               $timeout++
+             }
            }
          } else {
            [System.Media.SystemSounds]::Exclamation.Play()
@@ -51,7 +58,8 @@ try {
       : `[System.Media.SystemSounds]::Exclamation.Play()`
   }
 } catch {
-  # Audio fallback non-fatal
+  Write-Host "[APL] Audio playback failed: $_"
+  [System.Media.SystemSounds]::Exclamation.Play()
 }
 `;
 
