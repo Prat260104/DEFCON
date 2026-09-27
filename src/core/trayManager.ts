@@ -176,6 +176,40 @@ export class TrayManager {
       } catch {
         // pgrep exits with 1 when no processes match — completely normal
       }
+    } else if (process.platform === "win32") {
+      // Windows: Use tasklist to find orphaned defcon-tray.exe processes
+      try {
+        const stdout = execSync('tasklist /FI "IMAGENAME eq defcon-tray.exe" /FO CSV /NH', {
+          encoding: "utf-8",
+          stdio: ["pipe", "pipe", "ignore"],
+        });
+
+        const currentPid = process.pid;
+        const childPid = this.childProcess?.pid;
+
+        const lines = stdout.trim().split("\n");
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          // CSV format: "defcon-tray.exe","1234","Console","1","12,345 K"
+          const match = line.match(/"defcon-tray\.exe","(\d+)"/);
+          if (match && match[1]) {
+            const pid = parseInt(match[1], 10);
+            if (!isNaN(pid) && pid > 0 && pid !== currentPid && pid !== childPid) {
+              try {
+                if (this.verbose) {
+                  console.log(`  ⚠️ Cleaned up stray tray process (PID: ${pid})`);
+                }
+                execSync(`taskkill /PID ${pid} /F`, { stdio: "ignore" });
+              } catch {
+                // Process already terminated or taskkill failed
+              }
+            }
+          }
+        }
+      } catch {
+        // tasklist failed or no processes found (normal)
+      }
     }
   }
 
