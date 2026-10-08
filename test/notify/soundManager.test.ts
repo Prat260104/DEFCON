@@ -90,7 +90,6 @@ describe("soundManager", () => {
 
   describe("resolveSoundForEvent priority hierarchy", () => {
     const baseEvent: AgentEvent = {
-      id: "evt-1",
       timestamp: Date.now(),
       agent: "claude-code",
       type: "permission_required",
