@@ -72,9 +72,16 @@ try {
                $timeout++
              }
              
-             # If loaded successfully, wait for playback to actually start
+             # If loaded successfully, wait for playback to actually complete
              if ($player.NaturalDuration.HasTimeSpan) {
-               Start-Sleep -Milliseconds 200
+               $duration = $player.NaturalDuration.TimeSpan.TotalMilliseconds
+               if ($duration -gt 0 -and $duration -lt 15000) {
+                 Start-Sleep -Milliseconds $duration
+               } else {
+                 Start-Sleep -Milliseconds 3000
+               }
+             } else {
+               Start-Sleep -Milliseconds 2500
              }
            }
          } else {

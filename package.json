@@ -56,6 +56,7 @@
   "homepage": "https://github.com/Prat260104/DEFCON#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "agent-permission-layer": "^1.0.7",
     "chokidar": "^4.0.0",
     "commander": "^13.0.0",
     "ws": "^8.21.3",
